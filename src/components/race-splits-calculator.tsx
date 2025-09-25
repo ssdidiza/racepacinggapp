@@ -1,13 +1,16 @@
 "use client";
 
 import { useState } from 'react';
-import { Download, Calculator, Clock, Mountain, TrendingUp, BarChart } from 'lucide-react';
+import { Download, Calculator, Clock, Mountain, TrendingUp, BarChart, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { cn } from '@/lib/utils';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+
 
 interface Split {
   name: string;
@@ -44,12 +47,19 @@ const RaceSplitsCalculator = () => {
     const seconds = Math.floor(totalSeconds % 60);
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   };
-
-  const getDifficultyIcon = (terrainFactor: number) => {
-    if (terrainFactor >= 1.2) return <TrendingUp className="w-5 h-5 text-green-500" />;
-    if (terrainFactor >= 0.8) return <div className="w-3 h-3 rounded-full bg-yellow-400" />;
-    return <Mountain className="w-5 h-5 text-red-500" />;
+  
+  const getDifficultyIcon = (terrainFactor: number, className?: string) => {
+    if (terrainFactor >= 1.2) return <TrendingUp className={cn("w-5 h-5 text-green-500", className)} />;
+    if (terrainFactor >= 0.8) return <div className={cn("w-3 h-3 rounded-full bg-yellow-400", className)} />;
+    return <Mountain className={cn("w-5 h-5 text-red-500", className)} />;
   };
+
+  const getDifficultyDescription = (terrainFactor: number) => {
+    if (terrainFactor >= 1.2) return "Fast";
+    if (terrainFactor >= 0.8) return "Moderate";
+    return "Hilly";
+  };
+
 
   const calculateSplits = () => {
     const targetTotalMinutes = targetHours * 60 + targetMinutes;
@@ -134,11 +144,11 @@ const RaceSplitsCalculator = () => {
   const overallAverageSpeed = showResults ? (98 / ((targetHours * 60 + targetMinutes) / 60)).toFixed(2) : 0;
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8">
+    <div className="p-2 sm:p-4 lg:p-6">
       <Card className="max-w-7xl mx-auto shadow-2xl shadow-primary/10 border-primary/20">
         <CardHeader className="text-center">
           <CardTitle className="font-headline text-3xl md:text-4xl font-extrabold tracking-tight text-primary">RideWise Splits</CardTitle>
-          <CardDescription className="text-lg text-muted-foreground mt-2">
+          <CardDescription className="text-lg text-muted-foreground mt-2 max-w-2xl mx-auto">
             947 Ride Joburg Terrain-Adjusted Race Splits Calculator (98km)
           </CardDescription>
           <div className="flex items-center justify-center text-sm text-muted-foreground pt-2 gap-2">
@@ -183,7 +193,7 @@ const RaceSplitsCalculator = () => {
                   Generate Terrain Splits
                 </Button>
                 {showResults && (
-                  <Button onClick={downloadCSV} variant="secondary" size="lg" className="bg-accent/90 hover:bg-accent/100 text-accent-foreground">
+                  <Button onClick={downloadCSV} variant="secondary" size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
                     <Download className="mr-2" />
                     Download CSV
                   </Button>
@@ -197,7 +207,7 @@ const RaceSplitsCalculator = () => {
                     <AlertTitle>Overall Average Speed Required</AlertTitle>
                     <AlertDescription>
                       {overallAverageSpeed} km/h 
-                      <span className="ml-4 text-xs text-muted-foreground">(Note: Your actual speed will vary by terrain. See table for details.)</span>
+                      <span className="ml-1 sm:ml-4 text-xs text-muted-foreground">(Note: Your actual speed will vary by terrain. See table for details.)</span>
                     </AlertDescription>
                   </Alert>
               </CardFooter>
@@ -226,42 +236,94 @@ const RaceSplitsCalculator = () => {
                 </CardContent>
               </Card>
 
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[180px]">Checkpoint</TableHead>
-                      <TableHead className="text-center">Terrain</TableHead>
-                      <TableHead className="text-center">Dist. (km)</TableHead>
-                      <TableHead className="text-center">Time to Point</TableHead>
-                      <TableHead className="text-center">Split Time</TableHead>
-                      <TableHead className="text-center">Split Dist. (km)</TableHead>
-                      <TableHead className="text-center">Speed (km/h)</TableHead>
-                      <TableHead className="text-center">Moving Avg (km/h)</TableHead>
-                      <TableHead>Description</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {splits.map((split, index) => (
-                      <TableRow key={index}>
-                        <TableCell className="font-medium">{split.name}</TableCell>
-                        <TableCell className="flex justify-center items-center h-full pt-6">{getDifficultyIcon(split.terrainFactor)}</TableCell>
-                        <TableCell className="text-center font-mono">{split.distance.toFixed(1)}</TableCell>
-                        <TableCell className="text-center font-mono text-primary font-semibold">{formatTime(split.timeToPoint)}</TableCell>
-                        <TableCell className="text-center font-mono">{formatTime(split.splitTime)}</TableCell>
-                        <TableCell className="text-center font-mono">{split.splitDistance.toFixed(1)}</TableCell>
-                        <TableCell className={`text-center font-medium font-mono ${
+              {/* Mobile Card Layout */}
+              <div className="space-y-4 lg:hidden">
+                {splits.map((split, index) => (
+                  <div key={index}>
+                    <Card className="shadow-md">
+                      <CardHeader>
+                        <CardTitle className="flex items-center justify-between">
+                          <span className="text-xl">{split.name}</span>
+                          <div className="flex items-center gap-2 text-sm font-medium px-2 py-1 rounded-full bg-secondary">
+                              {getDifficultyIcon(split.terrainFactor, "w-4 h-4")}
+                              <span>{getDifficultyDescription(split.terrainFactor)}</span>
+                          </div>
+                        </CardTitle>
+                        <CardDescription>{split.distance.toFixed(1)} km into race</CardDescription>
+                      </CardHeader>
+                      <CardContent className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                        <div className="font-semibold">Time to Point:</div>
+                        <div className="font-mono text-primary font-bold text-right">{formatTime(split.timeToPoint)}</div>
+                        
+                        <div className="font-semibold">Expected Speed:</div>
+                        <div className={cn(
+                          "font-mono font-medium text-right",
                           split.terrainFactor >= 1.2 ? 'text-green-600' : 
                           split.terrainFactor < 0.8 ? 'text-red-600' : ''
-                        }`}>
-                          {split.speedOnSplit.toFixed(1)}
-                        </TableCell>
-                        <TableCell className="text-center font-mono">{split.movingAverageSpeed.toFixed(1)}</TableCell>
-                        <TableCell className="text-xs text-muted-foreground">{split.description}</TableCell>
+                        )}>
+                          {split.speedOnSplit.toFixed(1)} km/h
+                        </div>
+
+                        <div className="font-semibold">Split Time:</div>
+                        <div className="font-mono text-right">{formatTime(split.splitTime)}</div>
+
+                        <div className="font-semibold">Split Distance:</div>
+                        <div className="font-mono text-right">{split.splitDistance.toFixed(1)} km</div>
+                      </CardContent>
+                      <CardFooter>
+                         <p className="text-xs text-muted-foreground">{split.description}</p>
+                      </CardFooter>
+                    </Card>
+                    {index < splits.length - 1 && (
+                      <div className="flex justify-center my-2">
+                        <ChevronRight className="w-6 h-6 text-muted-foreground/50 -rotate-90" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Tablet and Desktop Table Layout */}
+              <div className="hidden lg:block">
+                <ScrollArea className="w-full whitespace-nowrap rounded-md border">
+                  <Table className="min-w-full">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="sticky left-0 bg-card z-10 w-[180px] min-w-[180px]">Checkpoint</TableHead>
+                        <TableHead className="text-center">Terrain</TableHead>
+                        <TableHead className="text-center">Dist. (km)</TableHead>
+                        <TableHead className="text-center">Time to Point</TableHead>
+                        <TableHead className="text-center">Split Time</TableHead>
+                        <TableHead className="text-center">Split Dist. (km)</TableHead>
+                        <TableHead className="text-center">Speed (km/h)</TableHead>
+                        <TableHead className="text-center">Moving Avg (km/h)</TableHead>
+                        <TableHead>Description</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {splits.map((split, index) => (
+                        <TableRow key={index}>
+                          <TableCell className="sticky left-0 bg-card z-10 font-medium">{split.name}</TableCell>
+                          <TableCell className="flex justify-center items-center h-full pt-6">{getDifficultyIcon(split.terrainFactor)}</TableCell>
+                          <TableCell className="text-center font-mono">{split.distance.toFixed(1)}</TableCell>
+                          <TableCell className="text-center font-mono text-primary font-semibold">{formatTime(split.timeToPoint)}</TableCell>
+                          <TableCell className="text-center font-mono">{formatTime(split.splitTime)}</TableCell>
+                          <TableCell className="text-center font-mono">{split.splitDistance.toFixed(1)}</TableCell>
+                          <TableCell className={cn(
+                            "text-center font-medium font-mono",
+                            split.terrainFactor >= 1.2 ? 'text-green-600' : 
+                            split.terrainFactor < 0.8 ? 'text-red-600' : ''
+                          )}>
+                            {split.speedOnSplit.toFixed(1)}
+                          </TableCell>
+                          <TableCell className="text-center font-mono">{split.movingAverageSpeed.toFixed(1)}</TableCell>
+                          <TableCell className="text-xs text-muted-foreground whitespace-pre-wrap min-w-[200px]">{split.description}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                  <ScrollBar orientation="horizontal" />
+                </ScrollArea>
               </div>
             </>
           )}
@@ -301,3 +363,5 @@ const RaceSplitsCalculator = () => {
 };
 
 export default RaceSplitsCalculator;
+
+    
