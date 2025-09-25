@@ -1,3 +1,9 @@
+import RaceSplitsCalculator from "@/components/race-splits-calculator";
+
 export default function Home() {
-  return <></>;
+  return (
+    <main>
+      <RaceSplitsCalculator />
+    </main>
+  );
 }
