@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from 'react';
-import { Download, Calculator, Clock, Mountain, TrendingUp, BarChart, ChevronRight } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Download, Calculator, Clock, Mountain, TrendingUp, BarChart, ChevronRight, AlertTriangle, Info, CheckCircle2, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -10,7 +10,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-
 
 interface Split {
   name: string;
@@ -25,11 +24,19 @@ interface Split {
   description: string;
 }
 
+type PaceValidation = {
+  level: 'error' | 'warning' | 'info' | 'success';
+  title: string;
+  message: string;
+  Icon: React.ElementType;
+} | null;
+
 const RaceSplitsCalculator = () => {
   const [targetHours, setTargetHours] = useState(3);
   const [targetMinutes, setTargetMinutes] = useState(45);
   const [splits, setSplits] = useState<Split[]>([]);
   const [showResults, setShowResults] = useState(false);
+  const [paceValidation, setPaceValidation] = useState<PaceValidation>(null);
 
   const checkpoints = [
     { name: 'M1 17km', distance: 17, terrainFactor: 1.0, description: 'Moderate start, mixed terrain' },
@@ -38,6 +45,67 @@ const RaceSplitsCalculator = () => {
     { name: 'Mandela Bridge 84.2km', distance: 84.2, terrainFactor: 0.65, description: 'Toughest section - major hills' },
     { name: 'Finish 98km', distance: 98, terrainFactor: 0.85, description: 'Final push - mixed terrain' }
   ];
+
+  const presets = [
+    { label: 'Competitive', time: '3:00', hours: 3, minutes: 0 },
+    { label: 'Strong', time: '3:30', hours: 3, minutes: 30 },
+    { label: 'Recreational', time: '4:00', hours: 4, minutes: 0 },
+    { label: 'Finisher', time: '4:30', hours: 4, minutes: 30 },
+    { label: 'Cruiser', time: '5:00', hours: 5, minutes: 0 },
+  ];
+
+  useEffect(() => {
+    validatePace();
+    setShowResults(false);
+  }, [targetHours, targetMinutes]);
+
+
+  const validatePace = () => {
+    const totalMinutes = targetHours * 60 + targetMinutes;
+    if (totalMinutes < 150) { // < 2:30
+      setPaceValidation({
+        level: 'error', title: 'Elite Professional Pace',
+        message: 'This is a world-class time, typically reserved for professional cyclists. Please ensure this is a realistic goal.',
+        Icon: XCircle
+      });
+    } else if (totalMinutes < 180) { // 2:30 - 3:00
+      setPaceValidation({
+        level: 'warning', title: 'Very Aggressive Pace',
+        message: 'This is a highly competitive goal for experienced racers. It requires dedicated training and race strategy.',
+        Icon: AlertTriangle
+      });
+    } else if (totalMinutes < 210) { // 3:00 - 3:30
+      setPaceValidation({
+        level: 'info', title: 'Competitive Time',
+        message: 'A strong and challenging goal for dedicated recreational cyclists. Great job!',
+        Icon: Info
+      });
+    } else if (totalMinutes <= 270) { // 3:30 - 4:30
+      setPaceValidation({
+        level: 'success', title: 'Realistic & Achievable',
+        message: 'This is a great target for most riders. With consistent training, you can achieve this!',
+        Icon: CheckCircle2
+      });
+    } else if (totalMinutes <= 360) { // 4:30 - 6:00
+      setPaceValidation({
+        level: 'info', title: 'Leisurely & Enjoyable Pace',
+        message: 'A comfortable pace to enjoy the ride and soak in the atmosphere. Perfect for a fun day out.',
+        Icon: Info
+      });
+    } else { // > 6:00
+      setPaceValidation({
+        level: 'warning', title: 'Very Conservative Pace',
+        message: 'This pace is quite relaxed. Be mindful of official cut-off times along the route.',
+        Icon: AlertTriangle
+      });
+    }
+  };
+  
+  const setPresetTime = (hours: number, minutes: number) => {
+    setTargetHours(hours);
+    setTargetMinutes(minutes);
+  };
+
 
   const formatTime = (totalMinutes: number) => {
     if (isNaN(totalMinutes)) return "00:00:00";
@@ -141,7 +209,7 @@ const RaceSplitsCalculator = () => {
     window.URL.revokeObjectURL(url);
   };
 
-  const overallAverageSpeed = showResults ? (98 / ((targetHours * 60 + targetMinutes) / 60)).toFixed(2) : 0;
+  const overallAverageSpeed = showResults ? (98 / ((targetHours * 60 + targetMinutes) / 60)).toFixed(2) : (98 / ((targetHours * 60 + targetMinutes) / 60)).toFixed(2) || 0;
 
   return (
     <div className="p-2 sm:p-4 lg:p-6">
@@ -162,29 +230,63 @@ const RaceSplitsCalculator = () => {
           <Card className="bg-card">
             <CardHeader>
               <CardTitle>Your Target Finish Time</CardTitle>
+              <CardDescription>Enter your goal time or select a preset below.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="flex flex-wrap items-end gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="hours">Hours</Label>
-                  <Input
-                    id="hours"
-                    type="number" min="2" max="8" value={targetHours}
-                    onChange={(e) => setTargetHours(parseInt(e.target.value) || 2)}
-                    className="w-24 text-lg"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="minutes">Minutes</Label>
-                  <Input
-                    id="minutes"
-                    type="number" min="0" max="59" value={targetMinutes}
-                    onChange={(e) => setTargetMinutes(parseInt(e.target.value) || 0)}
-                    className="w-24 text-lg"
-                  />
-                </div>
-                <div className="text-2xl font-bold text-primary pb-2">
-                  = {targetHours}:{targetMinutes.toString().padStart(2, '0')}:00
+              <div className="flex flex-col gap-4">
+                  <div className="flex flex-wrap items-end gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="hours">Hours</Label>
+                      <Input
+                        id="hours"
+                        type="number" min="2" max="8" value={targetHours}
+                        onChange={(e) => setTargetHours(parseInt(e.target.value) || 2)}
+                        className="w-24 text-lg"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="minutes">Minutes</Label>
+                      <Input
+                        id="minutes"
+                        type="number" min="0" max="59" value={targetMinutes}
+                        onChange={(e) => setTargetMinutes(parseInt(e.target.value) || 0)}
+                        className="w-24 text-lg"
+                      />
+                    </div>
+                    <div className="text-2xl font-bold text-primary pb-2">
+                      = {targetHours}:{targetMinutes.toString().padStart(2, '0')}:00
+                    </div>
+                  </div>
+                  {paceValidation && (
+                    <Alert variant={paceValidation.level === 'error' ? 'destructive' : 'default'} className={cn({
+                      'bg-yellow-50 border-yellow-300 text-yellow-800 dark:bg-yellow-950 dark:border-yellow-800 dark:text-yellow-200 [&>svg]:text-yellow-500': paceValidation.level === 'warning',
+                      'bg-blue-50 border-blue-300 text-blue-800 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-200 [&>svg]:text-blue-500': paceValidation.level === 'info',
+                      'bg-green-50 border-green-300 text-green-800 dark:bg-green-950 dark:border-green-800 dark:text-green-200 [&>svg]:text-green-500': paceValidation.level === 'success',
+                    })}>
+                      <paceValidation.Icon className="h-4 w-4" />
+                      <AlertTitle>{paceValidation.title}</AlertTitle>
+                      <AlertDescription>{paceValidation.message}</AlertDescription>
+                    </Alert>
+                  )}
+              </div>
+              <div>
+                <Label className="mb-3 block">Quick Select Presets</Label>
+                <div className="flex flex-wrap gap-2">
+                  {presets.map(preset => (
+                     <Button
+                        key={preset.label}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPresetTime(preset.hours, preset.minutes)}
+                        className={cn(
+                          "flex flex-col h-auto p-2",
+                           targetHours === preset.hours && targetMinutes === preset.minutes ? "border-primary ring-2 ring-primary" : ""
+                        )}
+                      >
+                       <span className="font-semibold">{preset.label}</span>
+                       <span className="text-xs text-muted-foreground">{preset.time}</span>
+                     </Button>
+                  ))}
                 </div>
               </div>
               <div className="flex flex-wrap gap-3">
@@ -193,7 +295,7 @@ const RaceSplitsCalculator = () => {
                   Generate Terrain Splits
                 </Button>
                 {showResults && (
-                  <Button onClick={downloadCSV} variant="secondary" size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
+                  <Button onClick={downloadCSV} variant="outline" size="lg" className="border-accent text-accent hover:bg-accent hover:text-accent-foreground">
                     <Download className="mr-2" />
                     Download CSV
                   </Button>
@@ -363,5 +465,3 @@ const RaceSplitsCalculator = () => {
 };
 
 export default RaceSplitsCalculator;
-
-    
