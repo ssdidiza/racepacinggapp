@@ -183,7 +183,7 @@ const RaceSplitsCalculator = () => {
                   Generate Terrain Splits
                 </Button>
                 {showResults && (
-                  <Button onClick={downloadCSV} variant="outline" size="lg" className="border-accent/80 text-accent-foreground hover:bg-accent/90 hover:text-accent-foreground">
+                  <Button onClick={downloadCSV} variant="secondary" size="lg" className="bg-accent/90 hover:bg-accent/100 text-accent-foreground">
                     <Download className="mr-2" />
                     Download CSV
                   </Button>
