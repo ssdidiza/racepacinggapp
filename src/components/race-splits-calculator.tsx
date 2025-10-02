@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Download, Calculator, Clock, Mountain, TrendingUp, BarChart, ChevronRight, AlertTriangle, Info, CheckCircle2, XCircle } from 'lucide-react';
+import { Download, Calculator, Clock, Mountain, TrendingUp, BarChart, ChevronRight, AlertTriangle, Info, CheckCircle2, XCircle, Coffee, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import Link from 'next/link';
 
 interface Split {
   name: string;
@@ -459,6 +460,19 @@ const RaceSplitsCalculator = () => {
             </CardContent>
           </Card>
         </CardContent>
+
+        <CardFooter className="flex-col sm:flex-row items-center justify-center gap-4 text-center text-sm text-muted-foreground border-t pt-6">
+          <div className="flex items-center gap-2">
+            <Heart className="w-4 h-4 text-red-500" />
+            <span>A passion project by Spera Didiza.</span>
+          </div>
+          <Button asChild variant="outline" className="border-amber-500/50 text-amber-600 hover:bg-amber-500/10 hover:text-amber-700 dark:hover:bg-amber-500/20 dark:text-amber-400 dark:border-amber-500/30">
+            <Link href="https://paystack.shop/pay/spera" target="_blank">
+              <Coffee className="mr-2" />
+              Buy me a coffee
+            </Link>
+          </Button>
+        </CardFooter>
       </Card>
     </div>
   );
