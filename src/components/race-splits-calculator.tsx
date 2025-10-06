@@ -12,6 +12,15 @@ import { cn } from '@/lib/utils';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import Link from 'next/link';
 
+type TerrainFactor = 1.0 | 1.25 | 0.75 | 0.65 | 0.85;
+
+interface Checkpoint {
+  name: string;
+  distance: number;
+  terrainFactor: TerrainFactor;
+  description: string;
+}
+
 interface Split {
   name: string;
   distance: number;
@@ -21,7 +30,7 @@ interface Split {
   splitDistance: number;
   speedOnSplit: number;
   movingAverageSpeed: number;
-  terrainFactor: number;
+  terrainFactor: TerrainFactor;
   description: string;
 }
 
@@ -39,7 +48,7 @@ const RaceSplitsCalculator = () => {
   const [showResults, setShowResults] = useState(false);
   const [paceValidation, setPaceValidation] = useState<PaceValidation>(null);
 
-  const checkpoints = [
+  const checkpoints: Checkpoint[] = [
     { name: 'M1 17km', distance: 17, terrainFactor: 1.0, description: 'Moderate start, mixed terrain' },
     { name: 'Kyalami Entrance 44.2km', distance: 44.2, terrainFactor: 1.25, description: 'Fast section - downhill/flat' },
     { name: 'Kyalami Exit 49.3km', distance: 49.3, terrainFactor: 0.75, description: 'Challenging hills - expect slowdown' },
@@ -58,6 +67,7 @@ const RaceSplitsCalculator = () => {
   useEffect(() => {
     validatePace();
     setShowResults(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [targetHours, targetMinutes]);
 
 
@@ -117,13 +127,13 @@ const RaceSplitsCalculator = () => {
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   };
   
-  const getDifficultyIcon = (terrainFactor: number, className?: string) => {
+  const getDifficultyIcon = (terrainFactor: TerrainFactor, className?: string) => {
     if (terrainFactor >= 1.2) return <TrendingUp className={cn("w-5 h-5 text-green-500", className)} />;
     if (terrainFactor >= 0.8) return <div className={cn("w-3 h-3 rounded-full bg-yellow-400", className)} />;
     return <Mountain className={cn("w-5 h-5 text-red-500", className)} />;
   };
 
-  const getDifficultyDescription = (terrainFactor: number) => {
+  const getDifficultyDescription = (terrainFactor: TerrainFactor) => {
     if (terrainFactor >= 1.2) return "Fast";
     if (terrainFactor >= 0.8) return "Moderate";
     return "Hilly";
@@ -137,7 +147,7 @@ const RaceSplitsCalculator = () => {
     
     const baseAverageSpeed = totalDistance / (targetTotalMinutes / 60);
     
-    const calculatedSplits: Split[] = [];
+    const calculatedSplits: Omit<Split, 'movingAverageSpeed'>[] = [];
     let cumulativeTime = 0;
     
     for (let i = 0; i < checkpoints.length; i++) {
@@ -158,7 +168,6 @@ const RaceSplitsCalculator = () => {
         splitTime: splitTimeMinutes,
         splitDistance: splitDistance,
         speedOnSplit: adjustedSpeed,
-        movingAverageSpeed: 0, // Placeholder
         terrainFactor: checkpoint.terrainFactor,
         description: checkpoint.description
       });
@@ -168,7 +177,7 @@ const RaceSplitsCalculator = () => {
     const normalizationFactor = targetTotalMinutes / totalCalculatedTime;
     
     let normalizedCumulativeTime = 0;
-    const finalSplits = calculatedSplits.map((split) => {
+    const finalSplits = calculatedSplits.map((split): Split => {
       const normalizedSplitTime = split.splitTime * normalizationFactor;
       normalizedCumulativeTime += normalizedSplitTime;
 
@@ -210,7 +219,7 @@ const RaceSplitsCalculator = () => {
     window.URL.revokeObjectURL(url);
   };
 
-  const overallAverageSpeed = showResults ? (98 / ((targetHours * 60 + targetMinutes) / 60)).toFixed(2) : (98 / ((targetHours * 60 + targetMinutes) / 60)).toFixed(2) || 0;
+  const overallAverageSpeed = (98 / ((targetHours * 60 + targetMinutes) / 60)).toFixed(2);
 
   return (
     <div className="p-2 sm:p-4 lg:p-6">
@@ -280,8 +289,8 @@ const RaceSplitsCalculator = () => {
                         size="sm"
                         onClick={() => setPresetTime(preset.hours, preset.minutes)}
                         className={cn(
-                          "flex flex-col h-auto p-2",
-                           targetHours === preset.hours && targetMinutes === preset.minutes ? "border-primary ring-2 ring-primary" : ""
+                          "flex flex-col h-auto p-2 transition-all",
+                           targetHours === preset.hours && targetMinutes === preset.minutes ? "border-primary ring-2 ring-primary scale-105" : ""
                         )}
                       >
                        <span className="font-semibold">{preset.label}</span>
