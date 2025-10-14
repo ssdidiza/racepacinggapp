@@ -5,6 +5,12 @@
       "description": "A dynamic image of a cyclist in motion, blurred to convey speed.",
       "imageUrl": "https://picsum.photos/seed/cyclist1/1200/800",
       "imageHint": "cyclist motion"
+    },
+    {
+      "id": "cyclist-hero-2",
+      "description": "A close-up shot of a cyclist from behind on a sunny day.",
+      "imageUrl": "https://picsum.photos/seed/cyclist2/1200/800",
+      "imageHint": "cyclist sunny"
     }
   ]
 }
