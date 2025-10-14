@@ -122,7 +122,7 @@ const RaceSplitsCalculator = () => {
       setPaceValidation({ level: 'warning', title: 'Very Aggressive Pace', message: 'This is a highly competitive goal for experienced racers. It requires dedicated training and race strategy.', Icon: AlertTriangle });
     } else if (totalMinutes < 210) { 
       setPaceValidation({ level: 'info', title: 'Competitive Time', message: 'A strong and challenging goal for dedicated recreational cyclists. Great job!', Icon: Info });
-    } else if (totalMinutes <= 270) { S
+    } else if (totalMinutes <= 270) {
       setPaceValidation({ level: 'success', title: 'Realistic & Achievable', message: 'This is a great target for most riders. With consistent training, you can achieve this!', Icon: CheckCircle2 });
     } else if (totalMinutes <= 360) { 
       setPaceValidation({ level: 'info', title: 'Leisurely & Enjoyable Pace', message: 'A comfortable pace to enjoy the ride and soak in the atmosphere. Perfect for a fun day out.', Icon: Coffee });
