@@ -1,3 +1,10 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "cyclist-hero",
+      "description": "A dynamic image of a cyclist in motion, blurred to convey speed.",
+      "imageUrl": "https://picsum.photos/seed/cyclist1/1200/800",
+      "imageHint": "cyclist motion"
+    }
+  ]
 }
