@@ -427,31 +427,51 @@ const RaceSplitsCalculator = () => {
                   <h2 className="text-3xl font-bold tracking-tight">Your Race Plan</h2>
                   <p className="text-muted-foreground mt-2">A detailed breakdown of your race, split by split.</p>
                   
-                  <div className="mt-6 md:hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-sm font-medium text-muted-foreground">Avg. Speed</CardTitle>
+                  <div className="mt-6 grid grid-cols-1 gap-4 md:hidden">
+                  {splits.map((split, index) => (
+                    <Card key={index} className="overflow-hidden">
+                      <CardHeader className="flex flex-row items-center justify-between bg-muted/50">
+                        <CardTitle className="text-lg">{split.name}</CardTitle>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-sm">{split.distance.toFixed(1)}km</span>
+                          {getDifficultyIcon(split.terrainFactor)}
+                        </div>
                       </CardHeader>
-                      <CardContent>
-                        <p className="text-2xl font-semibold">{overallAverageSpeed.toFixed(1)} km/h</p>
+                      <CardContent className="p-4 space-y-4">
+                        <div className="grid grid-cols-2 gap-4 text-center">
+                          <div>
+                            <p className="text-sm text-muted-foreground">Time to Point</p>
+                            <p className="text-lg font-bold text-primary">{formatTime(split.timeToPoint)}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Est. Speed</p>
+                            <p className={cn("text-lg font-bold", split.terrainFactor >= 1.2 ? 'text-green-500' : split.terrainFactor < 0.8 ? 'text-red-500' : '')}>
+                              {split.speedOnSplit.toFixed(1)} km/h
+                            </p>
+                          </div>
+                        </div>
+                        {split.nutritionEvents.length > 0 && (
+                          <div className="border-t pt-4">
+                            <h4 className="text-sm font-semibold mb-2">Nutrition Stops</h4>
+                            <div className="flex flex-col gap-2">
+                              {split.nutritionEvents.map((event, idx) => (
+                                <div key={idx} className={cn("flex items-center gap-2 text-xs p-1.5 rounded-md", event.isPreHillWarning ? 'bg-amber-100 dark:bg-amber-900/50' : '')}>
+                                  {event.type === 'fuel' ? <Fuel className="w-4 h-4 text-orange-500" /> : <Droplet className="w-4 h-4 text-blue-500" />}
+                                  <span>{event.details} at <strong>{formatTime(event.time)}</strong></span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        <p className="text-xs text-muted-foreground text-center pt-2">{split.description}</p>
                       </CardContent>
+                      {index < splits.length - 1 && (
+                         <div className="flex justify-center -mb-3">
+                           <ChevronDown className="w-6 h-6 text-border" />
+                         </div>
+                      )}
                     </Card>
-                     <Card>
-                      <CardHeader>
-                        <CardTitle className="text-sm font-medium text-muted-foreground">Halfway Time</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-2xl font-semibold">{splits.length > 2 ? formatTime(splits[2].timeToPoint): 'N/A'}</p>
-                      </CardContent>
-                    </Card>
-                    <Card className="col-span-1 sm:col-span-2">
-                      <CardHeader>
-                        <CardTitle className="text-sm font-medium text-muted-foreground">Estimated Finish</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                       <p className="text-3xl font-bold text-primary">{formatTime(targetHours*60 + targetMinutes)}</p>
-                      </CardContent>
-                    </Card>
+                  ))}
                   </div>
 
                   <div className="hidden md:block mt-6">
