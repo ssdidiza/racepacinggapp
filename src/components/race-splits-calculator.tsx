@@ -67,6 +67,8 @@ const RaceSplitsCalculator = () => {
   const [nutritionEvents, setNutritionEvents] = useState<NutritionEvent[]>([]);
   const [riderProfile, setRiderProfile] = useState<RiderProfile>('intermediate');
   const resultsRef = useRef<HTMLDivElement>(null);
+  const [isAtBottom, setIsAtBottom] = useState(false);
+  const footerRef = useRef<HTMLDivElement>(null);
 
 
   const checkpoints: Checkpoint[] = [
@@ -91,6 +93,25 @@ const RaceSplitsCalculator = () => {
     validatePace();
     setShowResults(false);
   }, [targetHours, targetMinutes]);
+  
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsAtBottom(entry.isIntersecting);
+      },
+      { threshold: 0.1 }
+    );
+
+    if (footerRef.current) {
+      observer.observe(footerRef.current);
+    }
+
+    return () => {
+      if (footerRef.current) {
+        observer.unobserve(footerRef.current);
+      }
+    };
+  }, [showResults]);
 
 
   const validatePace = () => {
@@ -101,7 +122,7 @@ const RaceSplitsCalculator = () => {
       setPaceValidation({ level: 'warning', title: 'Very Aggressive Pace', message: 'This is a highly competitive goal for experienced racers. It requires dedicated training and race strategy.', Icon: AlertTriangle });
     } else if (totalMinutes < 210) { 
       setPaceValidation({ level: 'info', title: 'Competitive Time', message: 'A strong and challenging goal for dedicated recreational cyclists. Great job!', Icon: Info });
-    } else if (totalMinutes <= 270) { 
+    } else if (totalMinutes <= 270) { S
       setPaceValidation({ level: 'success', title: 'Realistic & Achievable', message: 'This is a great target for most riders. With consistent training, you can achieve this!', Icon: CheckCircle2 });
     } else if (totalMinutes <= 360) { 
       setPaceValidation({ level: 'info', title: 'Leisurely & Enjoyable Pace', message: 'A comfortable pace to enjoy the ride and soak in the atmosphere. Perfect for a fun day out.', Icon: Coffee });
@@ -318,8 +339,6 @@ const RaceSplitsCalculator = () => {
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
   };
-
-  const overallAverageSpeed = (98 / ((targetHours * 60 + targetMinutes) / 60));
 
   return (
     <div className="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden bg-background">
@@ -586,22 +605,35 @@ const RaceSplitsCalculator = () => {
               </div>
             )}
 
-            <footer className="mt-16 border-t pt-8 pb-8">
+            <footer ref={footerRef} className="mt-16 border-t pt-8 pb-8">
               <div className="flex flex-col md:flex-row justify-between items-center text-sm text-muted-foreground">
-                <p>A passion project by Spera Didiza. © 2024 RideWise Splits.</p>
-                <div className="flex space-x-4 mt-4 md:mt-0">
-                  <Button asChild variant="link" className="text-primary hover:text-primary/80">
-                    <Link href="https://paystack.shop/pay/spera" target="_blank">
-                      <Coffee className="mr-2" />
-                      Buy me a coffee
-                    </Link>
-                  </Button>
+                <p>
+                  A passion project by{' '}
+                  <Link href="https://strava.app.link/FSnhCW2qsXb" target="_blank" className="font-semibold text-primary underline hover:text-primary/80">
+                    Spera Didiza
+                  </Link>
+                  . © {new Date().getFullYear()} RideWise Splits.
+                </p>
+                <div className="flex space-x-4 mt-4 md:mt-0 items-center">
+                    <Button asChild variant="link" className={cn("text-primary hover:text-primary/80", isAtBottom ? "relative" : "hidden")}>
+                        <Link href="https://paystack.shop/pay/spera" target="_blank">
+                        <Coffee className="mr-2" />
+                        Buy me a coffee
+                        </Link>
+                    </Button>
                 </div>
               </div>
             </footer>
-
           </div>
         </main>
+        <Link 
+            href="https://paystack.shop/pay/spera" 
+            target="_blank" 
+            className={cn("fixed bottom-6 right-6 z-50 h-16 w-16 bg-primary rounded-full flex items-center justify-center text-white shadow-lg transition-transform duration-300 hover:scale-110", isAtBottom ? "translate-y-24" : "translate-y-0")}
+        >
+            <Coffee className="w-8 h-8" />
+            <span className="sr-only">Buy me a coffee</span>
+        </Link>
       </div>
     </div>
   );

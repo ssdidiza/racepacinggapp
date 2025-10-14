@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { cn } from '@/lib/utils';
 
 export const metadata: Metadata = {
-  title: 'RideWise Splits',
+  title: 'RideWise Splits by Spera Didiza',
   description: 'Terrain-Adjusted Race Splits Calculator for 947 Ride Joburg',
   icons: null
 };

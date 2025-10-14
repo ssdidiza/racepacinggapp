@@ -1,4 +1,4 @@
-# **App Name**: RideWise Splits
+# **App Name**: RideWise Splits by Spera Didiza
 
 ## Core Features:
 
