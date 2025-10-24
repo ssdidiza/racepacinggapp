@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
-import { Download, Calculator, Clock, Mountain, TrendingUp, BarChart, ChevronRight, AlertTriangle, Info, CheckCircle2, XCircle, Coffee, Heart, Fuel, Droplet, ChevronDown } from 'lucide-react';
+import { Download, Calculator, Clock, Mountain, TrendingUp, BarChart, ChevronRight, AlertTriangle, Info, CheckCircle2, XCircle, Coffee, Heart, Fuel, Droplet, ChevronDown, Cloud } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,8 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import Link from 'next/link';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { getWeatherForecast } from '@/ai/flows/weather-flow';
+import { type WeatherForecast, type HourlyForecast } from '@/ai/schemas/weather-schema';
 
 
 type TerrainFactor = 1.0 | 1.25 | 0.75 | 0.65 | 0.85;
@@ -37,6 +39,7 @@ interface Split {
   terrainFactor: TerrainFactor;
   description: string;
   nutritionEvents: NutritionEvent[];
+  weather?: HourlyForecast;
 }
 
 interface NutritionEvent {
@@ -70,6 +73,7 @@ const RaceSplitsCalculator = () => {
   const [paceValidation, setPaceValidation] = useState<PaceValidation>(null);
   const [nutritionStrategy, setNutritionStrategy] = useState<NutritionStrategy>('standard');
   const [nutritionEvents, setNutritionEvents] = useState<NutritionEvent[]>([]);
+  const [weatherForecast, setWeatherForecast] = useState<WeatherForecast | null>(null);
   const [riderProfile, setRiderProfile] = useState<RiderProfile>('intermediate');
   const resultsRef = useRef<HTMLDivElement>(null);
   const [isAtBottom, setIsAtBottom] = useState(false);
@@ -179,21 +183,30 @@ const RaceSplitsCalculator = () => {
   };
 
 
-  const handleCalculate = () => {
-    calculateSplits();
+  const handleCalculate = async () => {
+    await calculateSplits();
     setTimeout(() => {
       resultsRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, 100);
   };
 
-  const calculateSplits = () => {
+  const calculateSplits = async () => {
     const targetTotalMinutes = targetHours * 60 + targetMinutes;
     if (targetTotalMinutes <= 0) return;
+    
+    // Fetch weather forecast
+    const forecast = await getWeatherForecast({
+      location: 'Johannesburg, South Africa',
+      raceStartTime: startTime,
+      raceHours: targetHours,
+    });
+    setWeatherForecast(forecast);
+
     const totalDistance = 98;
     
     const baseAverageSpeed = totalDistance / (targetTotalMinutes / 60);
     
-    let calculatedSplits: Omit<Split, 'movingAverageSpeed' | 'nutritionEvents' | 'timeOfDay'>[] = [];
+    let calculatedSplits: Omit<Split, 'movingAverageSpeed' | 'nutritionEvents' | 'timeOfDay' | 'weather'>[] = [];
     let cumulativeTime = 0;
     
     for (let i = 0; i < checkpoints.length; i++) {
@@ -223,7 +236,7 @@ const RaceSplitsCalculator = () => {
     const normalizationFactor = targetTotalMinutes / totalCalculatedTime;
     
     let normalizedCumulativeTime = 0;
-    const finalSplitsWithoutNutrition = calculatedSplits.map((split): Omit<Split, 'nutritionEvents'> => {
+    const finalSplitsWithoutNutrition = calculatedSplits.map((split): Omit<Split, 'nutritionEvents' | 'weather'> => {
       const normalizedSplitTime = split.splitTime * normalizationFactor;
       normalizedCumulativeTime += normalizedSplitTime;
 
@@ -246,14 +259,18 @@ const RaceSplitsCalculator = () => {
           const prevTime = prevSplitIndex >= 0 ? finalSplitsWithoutNutrition[prevSplitIndex].timeToPoint : 0;
           return event.time > prevTime && event.time <= split.timeToPoint;
       });
-      return { ...split, nutritionEvents: nutritionForSplit };
+
+      const arrivalHour = split.timeOfDay.split(':')[0] + ':00';
+      const weatherForSplit = forecast?.hourly.find(h => h.time === arrivalHour);
+
+      return { ...split, nutritionEvents: nutritionForSplit, weather: weatherForSplit };
     });
 
     setSplits(finalSplits);
     setShowResults(true);
   };
 
-  const calculateNutritionEvents = (currentSplits: Omit<Split, 'nutritionEvents'>[], targetTime: number): NutritionEvent[] => {
+  const calculateNutritionEvents = (currentSplits: Omit<Split, 'nutritionEvents' | 'weather'>[], targetTime: number): NutritionEvent[] => {
     if (nutritionStrategy === 'none') return [];
   
     const nutritionPresets = {
@@ -518,6 +535,23 @@ const RaceSplitsCalculator = () => {
                                     <p className="text-xl font-mono">{split.movingAverageSpeed.toFixed(1)} km/h</p>
                                   </div>
                                 </div>
+
+                                {split.weather && (
+                                  <div className="pt-4 border-b pb-4">
+                                    <h4 className="text-sm font-semibold mb-2 text-center">Weather</h4>
+                                    <div className="flex items-center justify-center gap-4 text-center">
+                                      <span className="material-symbols-outlined text-4xl text-amber-500">{split.weather.icon}</span>
+                                      <div>
+                                        <p className="font-bold text-lg">{split.weather.temperature}°C</p>
+                                        <p className="text-xs text-muted-foreground">{split.weather.condition}</p>
+                                      </div>
+                                      <div>
+                                        <p className="font-bold text-lg">{split.weather.windSpeed} km/h</p>
+                                        <p className="text-xs text-muted-foreground">Wind ({split.weather.windDirection})</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
                                 
                                 {split.nutritionEvents.length > 0 && (
                                   <div className="pt-4">
@@ -546,13 +580,11 @@ const RaceSplitsCalculator = () => {
                         <TableHeader>
                           <TableRow>
                             <TableHead className="w-[180px]">Checkpoint</TableHead>
-                            <TableHead className="text-right">Split Dist.</TableHead>
-                            <TableHead className="text-right">Total Dist.</TableHead>
                             <TableHead className="text-right">Arrival Time</TableHead>
-                            <TableHead className="text-right">Time to Point</TableHead>
                             <TableHead className="text-right">Split Time</TableHead>
                             <TableHead className="text-right">Split Speed</TableHead>
                             <TableHead className="text-right">Avg. Speed</TableHead>
+                            <TableHead>Weather</TableHead>
                             <TableHead>Nutrition</TableHead>
                           </TableRow>
                         </TableHeader>
@@ -563,15 +595,20 @@ const RaceSplitsCalculator = () => {
                                 {getDifficultyIcon(split.terrainFactor)}
                                 {split.name}
                               </TableCell>
-                              <TableCell className="text-right font-mono">{split.splitDistance.toFixed(1)}km</TableCell>
-                              <TableCell className="text-right font-mono">{split.distance.toFixed(1)}km</TableCell>
                               <TableCell className="text-right font-mono text-primary font-semibold">{split.timeOfDay}</TableCell>
-                              <TableCell className="text-right font-mono">{formatTime(split.timeToPoint)}</TableCell>
                               <TableCell className="text-right font-mono">{formatTime(split.splitTime)}</TableCell>
                               <TableCell className={cn("text-right font-medium font-mono", split.terrainFactor >= 1.2 ? 'text-green-500' : split.terrainFactor < 0.8 ? 'text-red-500' : '')}>
                                 {split.speedOnSplit.toFixed(1)} km/h
                               </TableCell>
                               <TableCell className="text-right font-mono">{split.movingAverageSpeed.toFixed(1)} km/h</TableCell>
+                              <TableCell>
+                                {split.weather && (
+                                    <div className="flex items-center gap-2 text-xs">
+                                        <span className="material-symbols-outlined text-base text-amber-500">{split.weather.icon}</span>
+                                        <span>{split.weather.temperature}°C, {split.weather.windSpeed}km/h {split.weather.windDirection}</span>
+                                    </div>
+                                )}
+                              </TableCell>
                               <TableCell>
                                 <div className="flex flex-col gap-1.5">
                                   {split.nutritionEvents.map((event, idx) => (
