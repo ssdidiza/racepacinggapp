@@ -12,6 +12,8 @@ import { cn } from '@/lib/utils';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import Link from 'next/link';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+
 
 type TerrainFactor = 1.0 | 1.25 | 0.75 | 0.65 | 0.85;
 
@@ -470,7 +472,7 @@ const RaceSplitsCalculator = () => {
                     <div className="flex justify-between items-center">
                         <div>
                             <h2 className="text-3xl font-bold tracking-tight">Your Race Plan</h2>
-                            <p className="text-muted-foreground mt-2">A detailed breakdown of your race, split by split.</p>
+                            <p className="text-muted-foreground mt-2">A detailed breakdown of your performance across each checkpoint.</p>
                         </div>
                         <Button onClick={downloadCSV} variant="outline" size="lg">
                             <Download className="mr-2 h-4 w-4" />
@@ -478,51 +480,64 @@ const RaceSplitsCalculator = () => {
                         </Button>
                     </div>
                   
-                  <div className="mt-6 grid grid-cols-1 gap-4 md:hidden">
-                  {splits.map((split, index) => (
-                    <Card key={index} className="overflow-hidden">
-                      <CardHeader className="flex flex-row items-center justify-between bg-muted/50 p-4">
-                        <CardTitle className="text-lg">{split.name}</CardTitle>
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono text-sm">{split.distance.toFixed(1)}km</span>
-                          {getDifficultyIcon(split.terrainFactor)}
-                        </div>
-                      </CardHeader>
-                      <CardContent className="p-4 space-y-4">
-                        <div className="grid grid-cols-2 gap-4 text-center">
-                          <div>
-                            <p className="text-sm text-muted-foreground">Arrival Time</p>
-                            <p className="text-lg font-bold text-primary">{split.timeOfDay}</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-muted-foreground">Est. Speed</p>
-                            <p className={cn("text-lg font-bold", split.terrainFactor >= 1.2 ? 'text-green-500' : split.terrainFactor < 0.8 ? 'text-red-500' : '')}>
-                              {split.speedOnSplit.toFixed(1)} km/h
-                            </p>
-                          </div>
-                        </div>
-                        {split.nutritionEvents.length > 0 && (
-                          <div className="border-t pt-4">
-                            <h4 className="text-sm font-semibold mb-2">Nutrition Stops</h4>
-                            <div className="flex flex-col gap-2">
-                              {split.nutritionEvents.map((event, idx) => (
-                                <div key={idx} className={cn("flex items-center gap-2 text-xs p-1.5 rounded-md", event.isPreHillWarning ? 'bg-amber-100 dark:bg-amber-900/50' : '')}>
-                                  {event.type === 'fuel' ? <Fuel className="w-4 h-4 text-orange-500" /> : <Droplet className="w-4 h-4 text-blue-500" />}
-                                  <span>{event.details} at <strong>{event.timeOfDay}</strong></span>
+                  <div className="mt-6 grid grid-cols-1 gap-2 md:hidden">
+                    <Accordion type="single" collapsible className="w-full">
+                      {splits.map((split, index) => (
+                        <AccordionItem value={`item-${index}`} key={index} className="border-b-0">
+                          <Card className="overflow-hidden mb-2">
+                             <AccordionTrigger className="w-full hover:no-underline">
+                              <CardHeader className="flex flex-row items-center justify-between p-4 w-full">
+                                <div>
+                                  <CardTitle className="text-lg text-left">{split.name}</CardTitle>
+                                  <CardDescription>{split.distance.toFixed(1)}km - {getDifficultyDescription(split.terrainFactor)}</CardDescription>
                                 </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                        <p className="text-xs text-muted-foreground text-center pt-2">{split.description}</p>
-                      </CardContent>
-                      {index < splits.length - 1 && (
-                         <div className="flex justify-center -mb-3">
-                           <ChevronDown className="w-6 h-6 text-border" />
-                         </div>
-                      )}
-                    </Card>
-                  ))}
+                                <div className="flex items-center gap-2">
+                                  {getDifficultyIcon(split.terrainFactor, 'text-2xl')}
+                                </div>
+                              </CardHeader>
+                            </AccordionTrigger>
+                            <AccordionContent>
+                               <CardContent className="px-4 pb-4 space-y-4">
+                                <div className="grid grid-cols-2 gap-4 text-center border-b pb-4">
+                                  <div>
+                                    <p className="text-sm text-muted-foreground">Arrival</p>
+                                    <p className="text-xl font-bold text-primary">{split.timeOfDay}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-sm text-muted-foreground">Split Time</p>
+                                    <p className="text-xl font-mono">{formatTime(split.splitTime).substring(0, 5)}</p>
+                                  </div>
+                                   <div>
+                                    <p className="text-sm text-muted-foreground">Est. Speed</p>
+                                    <p className={cn("text-xl font-bold", split.terrainFactor >= 1.2 ? 'text-green-500' : split.terrainFactor < 0.8 ? 'text-red-500' : '')}>
+                                      {split.speedOnSplit.toFixed(1)} km/h
+                                    </p>
+                                  </div>
+                                   <div>
+                                    <p className="text-sm text-muted-foreground">Avg. Speed</p>
+                                    <p className="text-xl font-mono">{split.movingAverageSpeed.toFixed(1)} km/h</p>
+                                  </div>
+                                </div>
+                                
+                                {split.nutritionEvents.length > 0 && (
+                                  <div className="pt-4">
+                                    <h4 className="text-sm font-semibold mb-2 text-center">Nutrition Alerts</h4>
+                                    <div className="flex flex-col gap-2">
+                                      {split.nutritionEvents.map((event, idx) => (
+                                        <div key={idx} className={cn("flex items-center gap-2 text-xs p-1.5 rounded-md", event.isPreHillWarning ? 'bg-amber-100 dark:bg-amber-900/50' : 'bg-muted/50')}>
+                                          {event.type === 'fuel' ? <Fuel className="w-4 h-4 text-orange-500" /> : <Droplet className="w-4 h-4 text-blue-500" />}
+                                          <span>{event.details} at <strong>{event.timeOfDay}</strong></span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </CardContent>
+                            </AccordionContent>
+                          </Card>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
                   </div>
 
                   <div className="hidden md:block mt-6">
