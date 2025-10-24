@@ -95,7 +95,7 @@ const RaceSplitsCalculator = () => {
   useEffect(() => {
     validatePace();
     setShowResults(false);
-  }, [targetHours, targetMinutes]);
+  }, [targetHours, targetMinutes, riderProfile]);
   
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -119,7 +119,12 @@ const RaceSplitsCalculator = () => {
 
   const validatePace = () => {
     const totalMinutes = targetHours * 60 + targetMinutes;
-    if (totalMinutes < 150) { 
+
+    if (riderProfile === 'beginner' && totalMinutes < 240) { // Under 4 hours
+        setPaceValidation({ level: 'warning', title: 'Ambitious Pace for a Beginner', message: 'This is a very fast time for a first-timer. Make sure your training supports this goal!', Icon: AlertTriangle });
+    } else if (riderProfile === 'pro' && totalMinutes > 240) { // Over 4 hours
+        setPaceValidation({ level: 'info', title: 'Cruising Pace for a Pro', message: 'This seems like a relaxed pace for a pro rider. Planning an easy day?', Icon: Coffee });
+    } else if (totalMinutes < 150) { 
       setPaceValidation({ level: 'error', title: 'Elite Professional Pace', message: 'This is a world-class time, typically reserved for professional cyclists. Please ensure this is a realistic goal.', Icon: XCircle });
     } else if (totalMinutes < 180) { 
       setPaceValidation({ level: 'warning', title: 'Very Aggressive Pace', message: 'This is a highly competitive goal for experienced racers. It requires dedicated training and race strategy.', Icon: AlertTriangle });
@@ -382,6 +387,27 @@ const RaceSplitsCalculator = () => {
                 <CardContent className="p-6">
                   <div className="grid gap-6">
                     <div>
+                      <Label className="text-white text-lg font-bold">Rider Profile</Label>
+                      <div className="flex mt-2">
+                        <div className="flex h-12 flex-1 items-center justify-center rounded-lg bg-white/10 p-1">
+                          {(['beginner', 'intermediate', 'pro'] as RiderProfile[]).map(profile => (
+                            <label key={profile} className="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-md px-3 has-[:checked]:bg-primary has-[:checked]:shadow-md has-[:checked]:text-white text-gray-300 text-sm font-medium transition-all duration-200">
+                              <span className="truncate capitalize">{profile}</span>
+                              <input 
+                                className="invisible w-0" 
+                                name="rider-profile" 
+                                type="radio" 
+                                value={profile}
+                                checked={riderProfile === profile}
+                                onChange={() => setRiderProfile(profile)}
+                              />
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
                       <Label className="text-white text-lg font-bold">Enter Target Time</Label>
                       <div className="flex flex-wrap items-end gap-4 mt-2">
                         <div className="grid gap-2 flex-1 min-w-40">
@@ -428,27 +454,6 @@ const RaceSplitsCalculator = () => {
                       </Alert>
                     )}
 
-                    <div>
-                      <Label className="text-white font-bold text-lg">Rider Profile</Label>
-                      <div className="flex mt-2">
-                        <div className="flex h-12 flex-1 items-center justify-center rounded-lg bg-white/10 p-1">
-                          {(['beginner', 'intermediate', 'pro'] as RiderProfile[]).map(profile => (
-                            <label key={profile} className="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-md px-3 has-[:checked]:bg-primary has-[:checked]:shadow-md has-[:checked]:text-white text-gray-300 text-sm font-medium transition-all duration-200">
-                              <span className="truncate capitalize">{profile}</span>
-                              <input 
-                                className="invisible w-0" 
-                                name="rider-profile" 
-                                type="radio" 
-                                value={profile}
-                                checked={riderProfile === profile}
-                                onChange={() => setRiderProfile(profile)}
-                              />
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
                     <Button onClick={handleCalculate} size="lg" className="h-14 w-full text-lg font-bold">
                       <Calculator className="mr-2" />
                       Generate Race Plan
@@ -462,8 +467,16 @@ const RaceSplitsCalculator = () => {
             {showResults && (
               <div ref={resultsRef} className="mt-12 space-y-12">
                 <section>
-                  <h2 className="text-3xl font-bold tracking-tight">Your Race Plan</h2>
-                  <p className="text-muted-foreground mt-2">A detailed breakdown of your race, split by split.</p>
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <h2 className="text-3xl font-bold tracking-tight">Your Race Plan</h2>
+                            <p className="text-muted-foreground mt-2">A detailed breakdown of your race, split by split.</p>
+                        </div>
+                        <Button onClick={downloadCSV} variant="outline" size="lg">
+                            <Download className="mr-2 h-4 w-4" />
+                            Download CSV
+                        </Button>
+                    </div>
                   
                   <div className="mt-6 grid grid-cols-1 gap-4 md:hidden">
                   {splits.map((split, index) => (
@@ -620,12 +633,6 @@ const RaceSplitsCalculator = () => {
                       </Card>
                     </section>
                 )}
-                 <div className="flex justify-end">
-                  <Button onClick={downloadCSV} variant="outline" size="lg">
-                    <Download className="mr-2 h-4 w-4" />
-                    Download CSV
-                  </Button>
-                </div>
               </div>
             )}
 
