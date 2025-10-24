@@ -518,26 +518,32 @@ const RaceSplitsCalculator = () => {
                         <TableHeader>
                           <TableRow>
                             <TableHead className="w-[180px]">Checkpoint</TableHead>
-                            <TableHead className="text-center">Terrain</TableHead>
-                            <TableHead className="text-center">Dist.</TableHead>
-                            <TableHead className="text-center">Arrival Time</TableHead>
-                            <TableHead className="text-center">Time to Point</TableHead>
-                            <TableHead className="text-center">Speed</TableHead>
+                            <TableHead className="text-right">Split Dist.</TableHead>
+                            <TableHead className="text-right">Total Dist.</TableHead>
+                            <TableHead className="text-right">Arrival Time</TableHead>
+                            <TableHead className="text-right">Time to Point</TableHead>
+                            <TableHead className="text-right">Split Time</TableHead>
+                            <TableHead className="text-right">Split Speed</TableHead>
+                            <TableHead className="text-right">Avg. Speed</TableHead>
                             <TableHead>Nutrition</TableHead>
-                            <TableHead className="min-w-[200px]">Description</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {splits.map((split, index) => (
                             <TableRow key={index}>
-                              <TableCell className="font-medium">{split.name}</TableCell>
-                              <TableCell className="flex justify-center items-center h-full pt-4">{getDifficultyIcon(split.terrainFactor)}</TableCell>
-                              <TableCell className="text-center font-mono">{split.distance.toFixed(1)}km</TableCell>
-                              <TableCell className="text-center font-mono text-primary font-semibold">{split.timeOfDay}</TableCell>
-                              <TableCell className="text-center font-mono">{formatTime(split.timeToPoint)}</TableCell>
-                              <TableCell className={cn("text-center font-medium font-mono", split.terrainFactor >= 1.2 ? 'text-green-500' : split.terrainFactor < 0.8 ? 'text-red-500' : '')}>
+                              <TableCell className="font-medium flex items-center gap-2">
+                                {getDifficultyIcon(split.terrainFactor)}
+                                {split.name}
+                              </TableCell>
+                              <TableCell className="text-right font-mono">{split.splitDistance.toFixed(1)}km</TableCell>
+                              <TableCell className="text-right font-mono">{split.distance.toFixed(1)}km</TableCell>
+                              <TableCell className="text-right font-mono text-primary font-semibold">{split.timeOfDay}</TableCell>
+                              <TableCell className="text-right font-mono">{formatTime(split.timeToPoint)}</TableCell>
+                              <TableCell className="text-right font-mono">{formatTime(split.splitTime)}</TableCell>
+                              <TableCell className={cn("text-right font-medium font-mono", split.terrainFactor >= 1.2 ? 'text-green-500' : split.terrainFactor < 0.8 ? 'text-red-500' : '')}>
                                 {split.speedOnSplit.toFixed(1)} km/h
                               </TableCell>
+                              <TableCell className="text-right font-mono">{split.movingAverageSpeed.toFixed(1)} km/h</TableCell>
                               <TableCell>
                                 <div className="flex flex-col gap-1.5">
                                   {split.nutritionEvents.map((event, idx) => (
@@ -548,7 +554,6 @@ const RaceSplitsCalculator = () => {
                                   ))}
                                 </div>
                               </TableCell>
-                              <TableCell className="text-xs text-muted-foreground">{split.description}</TableCell>
                             </TableRow>
                           ))}
                         </TableBody>
