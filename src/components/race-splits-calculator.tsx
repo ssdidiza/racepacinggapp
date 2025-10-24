@@ -27,6 +27,7 @@ interface Split {
   distance: number;
   cumulativeDistance: number;
   timeToPoint: number;
+  timeOfDay: string;
   splitTime: number;
   splitDistance: number;
   speedOnSplit: number;
@@ -38,6 +39,7 @@ interface Split {
 
 interface NutritionEvent {
   time: number;
+  timeOfDay: string;
   type: 'fuel' | 'hydration';
   details: string;
   checkpointName: string;
@@ -60,6 +62,7 @@ type RiderProfile = 'beginner' | 'intermediate' | 'pro';
 const RaceSplitsCalculator = () => {
   const [targetHours, setTargetHours] = useState(3);
   const [targetMinutes, setTargetMinutes] = useState(45);
+  const [startTime, setStartTime] = useState('06:00');
   const [splits, setSplits] = useState<Split[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [paceValidation, setPaceValidation] = useState<PaceValidation>(null);
@@ -145,6 +148,15 @@ const RaceSplitsCalculator = () => {
     const seconds = totalSeconds % 60;
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   };
+
+  const formatTimeOfDay = (baseTime: string, addedMinutes: number) => {
+    if (!baseTime) return '';
+    const [startHours, startMinutes] = baseTime.split(':').map(Number);
+    const startDate = new Date();
+    startDate.setHours(startHours, startMinutes, 0, 0);
+    const newDate = new Date(startDate.getTime() + addedMinutes * 60000);
+    return newDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+  };
   
   const getDifficultyIcon = (terrainFactor: TerrainFactor, className?: string) => {
     if (terrainFactor >= 1.2) return <span className={cn("material-symbols-outlined text-green-500", className)}>trending_flat</span>;
@@ -174,7 +186,7 @@ const RaceSplitsCalculator = () => {
     
     const baseAverageSpeed = totalDistance / (targetTotalMinutes / 60);
     
-    let calculatedSplits: Omit<Split, 'movingAverageSpeed' | 'nutritionEvents'>[] = [];
+    let calculatedSplits: Omit<Split, 'movingAverageSpeed' | 'nutritionEvents' | 'timeOfDay'>[] = [];
     let cumulativeTime = 0;
     
     for (let i = 0; i < checkpoints.length; i++) {
@@ -211,6 +223,7 @@ const RaceSplitsCalculator = () => {
       return {
           ...split,
           timeToPoint: normalizedCumulativeTime,
+          timeOfDay: formatTimeOfDay(startTime, normalizedCumulativeTime),
           splitTime: normalizedSplitTime,
           speedOnSplit: split.splitDistance / (normalizedSplitTime / 60),
           movingAverageSpeed: split.cumulativeDistance / (normalizedCumulativeTime / 60),
@@ -265,6 +278,7 @@ const RaceSplitsCalculator = () => {
   
       events.push({
         time,
+        timeOfDay: formatTimeOfDay(startTime, time),
         type: 'fuel',
         details: `Take 1x Gel (${Math.round(preset.carbs / (60 / preset.fuelingInterval))}g carbs)`,
         checkpointName: `Towards ${split.name}`,
@@ -287,6 +301,7 @@ const RaceSplitsCalculator = () => {
     
         events.push({
           time,
+          timeOfDay: formatTimeOfDay(startTime, time),
           type: 'hydration',
           details: 'Sip of water/electrolytes',
           checkpointName: `Towards ${split.name}`,
@@ -302,20 +317,21 @@ const RaceSplitsCalculator = () => {
   const downloadCSV = () => {
     if (typeof window === "undefined") return;
     const headers = [
-      'Point on Route', 'Distance (km)', 'Time to Point', 'Split Time', 
+      'Point on Route', 'Distance (km)', 'Time of Day', 'Time to Point', 'Split Time', 
       'Split Distance (km)', 'Speed on Split (km/h)', 'Moving Average Speed (km/h)', 'Terrain Description', 'Nutrition'
     ];
     
     let allEvents = splits.flatMap(split => {
       const splitRow = [
           split.name, split.distance.toFixed(1),
-          formatTime(split.timeToPoint), formatTime(split.splitTime), split.splitDistance.toFixed(1),
+          split.timeOfDay, formatTime(split.timeToPoint), formatTime(split.splitTime), split.splitDistance.toFixed(1),
           split.speedOnSplit.toFixed(2), split.movingAverageSpeed.toFixed(2), `"${split.description}"`,""
       ];
       
       const nutritionRows = split.nutritionEvents.map(e => [
         `Nutrition Event`,
         e.distance.toFixed(1),
+        e.timeOfDay,
         formatTime(e.time),
         "", "", "", "",
         `"${e.checkpointName}"`,
@@ -389,10 +405,13 @@ const RaceSplitsCalculator = () => {
                           />
                         </div>
                         <div className="grid gap-2 flex-1 min-w-40">
-                          <Label className="text-gray-300 font-medium">Your Goal</Label>
-                          <div className="text-2xl font-bold text-white h-14 flex items-center">
-                            {targetHours}:{targetMinutes.toString().padStart(2, '0')}:00
-                          </div>
+                          <Label htmlFor="startTime" className="text-gray-300 font-medium">Start Time</Label>
+                          <Input
+                            id="startTime"
+                            type="time" value={startTime}
+                            onChange={(e) => setStartTime(e.target.value)}
+                            className="h-14 p-4 text-lg bg-white/10 text-white border-white/30 focus:border-primary"
+                          />
                         </div>
                       </div>
                     </div>
@@ -449,7 +468,7 @@ const RaceSplitsCalculator = () => {
                   <div className="mt-6 grid grid-cols-1 gap-4 md:hidden">
                   {splits.map((split, index) => (
                     <Card key={index} className="overflow-hidden">
-                      <CardHeader className="flex flex-row items-center justify-between bg-muted/50">
+                      <CardHeader className="flex flex-row items-center justify-between bg-muted/50 p-4">
                         <CardTitle className="text-lg">{split.name}</CardTitle>
                         <div className="flex items-center gap-2">
                           <span className="font-mono text-sm">{split.distance.toFixed(1)}km</span>
@@ -459,8 +478,8 @@ const RaceSplitsCalculator = () => {
                       <CardContent className="p-4 space-y-4">
                         <div className="grid grid-cols-2 gap-4 text-center">
                           <div>
-                            <p className="text-sm text-muted-foreground">Time to Point</p>
-                            <p className="text-lg font-bold text-primary">{formatTime(split.timeToPoint)}</p>
+                            <p className="text-sm text-muted-foreground">Arrival Time</p>
+                            <p className="text-lg font-bold text-primary">{split.timeOfDay}</p>
                           </div>
                           <div>
                             <p className="text-sm text-muted-foreground">Est. Speed</p>
@@ -476,7 +495,7 @@ const RaceSplitsCalculator = () => {
                               {split.nutritionEvents.map((event, idx) => (
                                 <div key={idx} className={cn("flex items-center gap-2 text-xs p-1.5 rounded-md", event.isPreHillWarning ? 'bg-amber-100 dark:bg-amber-900/50' : '')}>
                                   {event.type === 'fuel' ? <Fuel className="w-4 h-4 text-orange-500" /> : <Droplet className="w-4 h-4 text-blue-500" />}
-                                  <span>{event.details} at <strong>{formatTime(event.time)}</strong></span>
+                                  <span>{event.details} at <strong>{event.timeOfDay}</strong></span>
                                 </div>
                               ))}
                             </div>
@@ -501,8 +520,8 @@ const RaceSplitsCalculator = () => {
                             <TableHead className="w-[180px]">Checkpoint</TableHead>
                             <TableHead className="text-center">Terrain</TableHead>
                             <TableHead className="text-center">Dist.</TableHead>
+                            <TableHead className="text-center">Arrival Time</TableHead>
                             <TableHead className="text-center">Time to Point</TableHead>
-                            <TableHead className="text-center">Split Time</TableHead>
                             <TableHead className="text-center">Speed</TableHead>
                             <TableHead>Nutrition</TableHead>
                             <TableHead className="min-w-[200px]">Description</TableHead>
@@ -514,8 +533,8 @@ const RaceSplitsCalculator = () => {
                               <TableCell className="font-medium">{split.name}</TableCell>
                               <TableCell className="flex justify-center items-center h-full pt-4">{getDifficultyIcon(split.terrainFactor)}</TableCell>
                               <TableCell className="text-center font-mono">{split.distance.toFixed(1)}km</TableCell>
-                              <TableCell className="text-center font-mono text-primary font-semibold">{formatTime(split.timeToPoint)}</TableCell>
-                              <TableCell className="text-center font-mono">{formatTime(split.splitTime)}</TableCell>
+                              <TableCell className="text-center font-mono text-primary font-semibold">{split.timeOfDay}</TableCell>
+                              <TableCell className="text-center font-mono">{formatTime(split.timeToPoint)}</TableCell>
                               <TableCell className={cn("text-center font-medium font-mono", split.terrainFactor >= 1.2 ? 'text-green-500' : split.terrainFactor < 0.8 ? 'text-red-500' : '')}>
                                 {split.speedOnSplit.toFixed(1)} km/h
                               </TableCell>
@@ -524,7 +543,7 @@ const RaceSplitsCalculator = () => {
                                   {split.nutritionEvents.map((event, idx) => (
                                       <div key={idx} className={cn("flex items-center gap-2 text-xs p-1 rounded-md", event.isPreHillWarning ? 'bg-amber-100 dark:bg-amber-900/50' : '')}>
                                           {event.type === 'fuel' ? <Fuel className="w-3.5 h-3.5 text-orange-500" /> : <Droplet className="w-3.5 h-3.5 text-blue-500" />}
-                                          <span>@{formatTime(event.time)}</span>
+                                          <span>@{event.timeOfDay}</span>
                                       </div>
                                   ))}
                                 </div>
@@ -578,7 +597,7 @@ const RaceSplitsCalculator = () => {
                                               <div className={cn("mt-1 flex-shrink-0 h-4 w-4 rounded-full border-4 flex items-center justify-center", event.type === 'fuel' ? 'bg-orange-500 border-orange-300' : 'bg-blue-500 border-blue-300')}>
                                               </div>
                                               <div className="flex-grow">
-                                                  <p className="font-bold">{formatTime(event.time)} ({event.distance.toFixed(1)} km)</p>
+                                                  <p className="font-bold">{event.timeOfDay} ({event.distance.toFixed(1)} km)</p>
                                                   <p className="text-sm text-muted-foreground">{event.details}</p>
                                                   <p className="text-xs text-muted-foreground">{event.checkpointName}</p>
                                                   {event.isPreHillWarning && (
