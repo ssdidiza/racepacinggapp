@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
-import { Download, Calculator, Clock, Mountain, TrendingUp, BarChart, ChevronRight, AlertTriangle, Info, CheckCircle2, XCircle, Coffee, Heart, Fuel, Droplet, ChevronDown, Cloud } from 'lucide-react';
+import { Download, Calculator, Clock, Mountain, TrendingUp, BarChart, ChevronRight, AlertTriangle, Info, CheckCircle2, XCircle, Coffee, Heart, Fuel, Droplet, ChevronDown, Cloud, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -75,6 +75,7 @@ const RaceSplitsCalculator = () => {
   const [nutritionEvents, setNutritionEvents] = useState<NutritionEvent[]>([]);
   const [weatherForecast, setWeatherForecast] = useState<WeatherForecast | null>(null);
   const [riderProfile, setRiderProfile] = useState<RiderProfile>('intermediate');
+  const [isLoading, setIsLoading] = useState(false);
   const resultsRef = useRef<HTMLDivElement>(null);
   const [isAtBottom, setIsAtBottom] = useState(false);
   const footerRef = useRef<HTMLDivElement>(null);
@@ -184,10 +185,18 @@ const RaceSplitsCalculator = () => {
 
 
   const handleCalculate = async () => {
-    await calculateSplits();
-    setTimeout(() => {
-      resultsRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
+    setIsLoading(true);
+    try {
+      await calculateSplits();
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    } catch (error) {
+      console.error("Failed to calculate splits:", error);
+      // Optionally, show an error toast to the user
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const calculateSplits = async () => {
@@ -473,9 +482,18 @@ const RaceSplitsCalculator = () => {
                       </Alert>
                     )}
 
-                    <Button onClick={handleCalculate} size="lg" className="h-14 w-full text-lg font-bold">
-                      <Calculator className="mr-2" />
-                      Generate Race Plan
+                    <Button onClick={handleCalculate} size="lg" className="h-14 w-full text-lg font-bold" disabled={isLoading}>
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="mr-2 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Calculator className="mr-2" />
+                          Generate Race Plan
+                        </>
+                      )}
                     </Button>
                   </div>
                 </CardContent>
