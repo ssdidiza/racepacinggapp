@@ -177,7 +177,7 @@ const RaceSplitsCalculator = () => {
     const targetTotalMinutes = targetHours * 60 + targetMinutes;
     if (targetTotalMinutes <= 0) return;
     
-    // Fetch weather forecast with month context
+    // Fetch weather forecast with month and location context
     const forecast = await getWeatherForecast({
       location: currentRace.location,
       month: currentRace.month,
@@ -367,6 +367,7 @@ const RaceSplitsCalculator = () => {
   const heroImage = PlaceHolderImages.find(p => p.id === 'cyclist-hero-2');
   const ctctImage = PlaceHolderImages.find(p => p.id === 'ctct-preview');
   const spinTribeImage = PlaceHolderImages.find(p => p.id === 'spin-tribe-preview');
+  const amashovaImage = PlaceHolderImages.find(p => p.id === 'amashova-preview');
 
   return (
     <div className="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden bg-background">
@@ -417,15 +418,27 @@ const RaceSplitsCalculator = () => {
                       </div>
                       
                       {selectedRaceId === 'ctct' && (
-                        <div className="p-3 bg-blue-500/20 border border-blue-400/30 rounded-lg text-blue-100 text-sm flex items-start gap-2 animate-in fade-in slide-in-from-left-2">
-                          <Info className="w-4 h-4 mt-0.5 shrink-0" />
-                          <p>Cape Town, March · 109km · Watch for the Cape Doctor wind and Ou Kaapse Weg.</p>
+                        <div 
+                          className="p-4 bg-blue-500/20 border border-blue-400/30 rounded-lg text-blue-100 text-sm flex items-start gap-4 animate-in fade-in slide-in-from-left-2 relative overflow-hidden group/banner"
+                        >
+                          <div 
+                            className="absolute inset-0 opacity-20 bg-cover bg-center group-hover/banner:scale-105 transition-transform duration-700 pointer-events-none"
+                            style={{ backgroundImage: `url("${ctctImage?.imageUrl}")` }}
+                          />
+                          <Info className="w-5 h-5 mt-0.5 shrink-0 text-blue-300 relative z-10" />
+                          <div className="relative z-10">
+                             <p className="font-bold mb-1">Cape Town Cycle Tour (CTCT)</p>
+                             <p className="opacity-90">March · 109km · Watch for the Cape Doctor wind and Ou Kaapse Weg.</p>
+                          </div>
                         </div>
                       )}
                       {selectedRaceId === '947-joburg' && (
-                        <div className="p-3 bg-orange-500/20 border border-orange-400/30 rounded-lg text-orange-100 text-sm flex items-start gap-2 animate-in fade-in slide-in-from-left-2">
-                          <Info className="w-4 h-4 mt-0.5 shrink-0" />
-                          <p>Johannesburg, November · 98km · Save legs for Mandela Bridge.</p>
+                        <div className="p-3 bg-orange-500/20 border border-orange-400/30 rounded-lg text-orange-100 text-sm flex items-start gap-3 animate-in fade-in slide-in-from-left-2">
+                          <Info className="w-5 h-5 mt-0.5 shrink-0 text-orange-300" />
+                          <div>
+                            <p className="font-bold mb-1">947 Ride Joburg</p>
+                            <p className="opacity-90">November · 98km · Save legs for Mandela Bridge.</p>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -764,13 +777,13 @@ const RaceSplitsCalculator = () => {
                     style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.8)), url("${ctctImage?.imageUrl}")` }}
                   />
                   <CardHeader className="relative z-10 text-white mt-auto h-full flex flex-col justify-end">
-                    <div className="bg-primary/20 backdrop-blur-md self-start px-3 py-1 rounded-full text-xs font-bold mb-3 border border-white/20 flex items-center gap-2">
-                      <Calendar className="w-3 h-3" />
-                      {selectedRaceId === 'ctct' ? 'LIVE NOW' : 'COMING MARCH 2025'}
+                    <div className="bg-primary/40 backdrop-blur-md self-start px-3 py-1 rounded-full text-xs font-bold mb-3 border border-white/20 flex items-center gap-2">
+                      <CheckCircle2 className="w-3 h-3 text-green-400" />
+                      CALCULATOR LIVE
                     </div>
                     <CardTitle className="text-3xl font-black">Cape Town Cycle Tour</CardTitle>
                     <CardDescription className="text-gray-200 text-lg font-medium mt-2">
-                      The world's largest timed cycle race. We've built a dedicated terrain-adjusted calculator for the coastal winds.
+                      The world's largest timed cycle race is now supported. Get your terrain-adjusted coastal splits today.
                     </CardDescription>
                   </CardHeader>
                   <CardFooter className="relative z-10 pt-0">
@@ -782,7 +795,30 @@ const RaceSplitsCalculator = () => {
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                       }}
                     >
-                      {selectedRaceId === 'ctct' ? 'Currently Selected' : 'Try CTCT Calculator'}
+                      {selectedRaceId === 'ctct' ? 'Currently Selected' : 'Load CTCT Calculator'}
+                    </Button>
+                  </CardFooter>
+                </Card>
+
+                {/* Amashova National Classic (New Coming Soon) */}
+                <Card className="relative overflow-hidden group shadow-lg border-primary/5 min-h-[300px] flex flex-col">
+                  <div 
+                    className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110 grayscale group-hover:grayscale-0 opacity-60" 
+                    style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.9)), url("${amashovaImage?.imageUrl}")` }}
+                  />
+                  <CardHeader className="relative z-10 text-white pt-6">
+                    <div className="bg-muted/40 backdrop-blur-md self-start px-2 py-1 rounded-full text-[10px] font-black tracking-widest uppercase mb-3 border border-white/10 flex items-center gap-2">
+                      <Calendar className="w-3 h-3" />
+                      JULY 2025
+                    </div>
+                    <CardTitle className="text-2xl font-black">Amashova Classic</CardTitle>
+                    <CardDescription className="text-gray-300 font-medium mt-1">
+                      Durban to Pietermaritzburg. 106km of rolling Natal hills.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardFooter className="mt-auto relative z-10 pb-6">
+                    <Button variant="outline" className="w-full font-bold bg-white/5 border-white/20 text-white cursor-not-allowed opacity-70">
+                      Coming Soon
                     </Button>
                   </CardFooter>
                 </Card>
@@ -825,34 +861,16 @@ const RaceSplitsCalculator = () => {
                   </CardFooter>
                 </Card>
 
-                {/* Community Forum */}
-                <Card className="shadow-lg border-primary/5 hover:border-primary/20 transition-all group">
-                  <CardHeader>
-                    <div className="p-3 bg-accent/10 rounded-xl w-fit mb-2 group-hover:bg-accent/20 transition-colors">
-                      <Users className="w-6 h-6 text-accent" />
-                    </div>
-                    <CardTitle className="text-xl font-bold tracking-tight">The Pelaton</CardTitle>
-                    <CardDescription className="font-medium">
-                      Join the local community of RideWise athletes to swap tips and strategies.
-                    </CardDescription>
-                  </CardHeader>
-                   <CardFooter className="mt-auto">
-                    <Button variant="ghost" className="p-0 font-bold hover:bg-transparent text-accent hover:text-accent/80 flex items-center gap-2">
-                      Join Community <ChevronRight className="w-4 h-4" />
-                    </Button>
-                  </CardFooter>
-                </Card>
-
                 {/* Suggest a Race */}
-                <Card className="shadow-lg border-primary/5 hover:border-primary/20 transition-all border-dashed bg-muted/20 flex flex-col items-center justify-center p-8 text-center">
-                  <div className="p-4 bg-muted rounded-full mb-4">
-                    <ExternalLink className="w-8 h-8 text-muted-foreground" />
+                <Card className="shadow-lg border-primary/5 hover:border-primary/20 transition-all border-dashed bg-muted/20 flex flex-col items-center justify-center p-8 text-center group">
+                  <div className="p-4 bg-muted rounded-full mb-4 group-hover:bg-primary/10 transition-colors">
+                    <ExternalLink className="w-8 h-8 text-muted-foreground group-hover:text-primary" />
                   </div>
-                  <CardTitle className="text-lg font-bold">Your Ride Here?</CardTitle>
+                  <CardTitle className="text-lg font-bold">Request a Race</CardTitle>
                   <CardDescription className="mt-2 mb-4 font-medium">
-                    Want a specific race added to the calculator?
+                    Want a specific race added to the calculator? Tell us about it.
                   </CardDescription>
-                  <Button variant="outline" className="font-bold">Request Race</Button>
+                  <Button variant="outline" className="font-bold border-primary/20">Suggest Now</Button>
                 </Card>
               </div>
             </section>
