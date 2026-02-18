@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
-import { Download, Calculator, Clock, Mountain, TrendingUp, BarChart, ChevronRight, AlertTriangle, Info, CheckCircle2, XCircle, Coffee, Heart, Fuel, Droplet, ChevronDown, Cloud, Loader2 } from 'lucide-react';
+import { Download, Calculator, Clock, Mountain, TrendingUp, BarChart, ChevronRight, AlertTriangle, Info, CheckCircle2, XCircle, Coffee, Heart, Fuel, Droplet, ChevronDown, Cloud, Loader2, Map, GraduationCap, Calendar, Users, Bike, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -89,15 +89,9 @@ const RaceSplitsCalculator = () => {
     { name: 'Finish 98km', distance: 98, terrainFactor: 0.85, description: 'Final push - mixed terrain' }
   ];
 
-  const presets = [
-    { label: 'Competitive', time: '3:00', hours: 3, minutes: 0 },
-    { label: 'Strong', time: '3:30', hours: 3, minutes: 30 },
-    { label: 'Recreational', time: '4:00', hours: 4, minutes: 0 },
-    { label: 'Finisher', time: '4:30', hours: 4, minutes: 30 },
-    { label: 'Cruiser', time: '5:00', hours: 5, minutes: 0 },
-  ];
-
   const heroImage = PlaceHolderImages.find(p => p.id === 'cyclist-hero-2');
+  const ctctImage = PlaceHolderImages.find(p => p.id === 'ctct-preview');
+  const spinTribeImage = PlaceHolderImages.find(p => p.id === 'spin-tribe-preview');
 
   useEffect(() => {
     validatePace();
@@ -145,11 +139,6 @@ const RaceSplitsCalculator = () => {
       setPaceValidation({ level: 'warning', title: 'Very Conservative Pace', message: 'This pace is quite relaxed. Be mindful of official cut-off times along the route.', Icon: AlertTriangle });
     }
   };
-  
-  const setPresetTime = (hours: number, minutes: number) => {
-    setTargetHours(hours);
-    setTargetMinutes(minutes);
-  };
 
 
   const formatTime = (totalMinutes: number) => {
@@ -193,7 +182,6 @@ const RaceSplitsCalculator = () => {
       }, 100);
     } catch (error) {
       console.error("Failed to calculate splits:", error);
-      // Optionally, show an error toast to the user
     } finally {
       setIsLoading(false);
     }
@@ -403,19 +391,22 @@ const RaceSplitsCalculator = () => {
               data-ai-hint={heroImage?.imageHint}
             >
               <div className="flex flex-col gap-2 text-center text-white">
-                <h1 className="text-4xl font-black md:text-6xl">
+                <h1 className="text-4xl font-black md:text-6xl tracking-tight">
                   Plan Your Perfect Race
                 </h1>
-                <h2 className="text-lg text-gray-200 md:text-xl">
-                  Enter your 947 Ride Joburg target time to get a personalized plan.
+                <h2 className="text-lg text-gray-200 md:text-xl font-medium">
+                  Enter your target time for the 947 Ride Joburg.
                 </h2>
               </div>
               
-              <Card className="bg-card/80 backdrop-blur-sm border-white/20">
+              <Card className="bg-card/80 backdrop-blur-sm border-white/20 shadow-2xl">
                 <CardContent className="p-6">
                   <div className="grid gap-6">
                     <div>
-                      <Label className="text-white text-lg font-bold">Rider Profile</Label>
+                      <Label className="text-white text-lg font-bold flex items-center gap-2">
+                        <Users className="w-5 h-5" />
+                        Rider Profile
+                      </Label>
                       <div className="flex mt-2">
                         <div className="flex h-12 flex-1 items-center justify-center rounded-lg bg-white/10 p-1">
                           {(['beginner', 'intermediate', 'pro'] as RiderProfile[]).map(profile => (
@@ -436,7 +427,10 @@ const RaceSplitsCalculator = () => {
                     </div>
 
                     <div>
-                      <Label className="text-white text-lg font-bold">Enter Target Time</Label>
+                      <Label className="text-white text-lg font-bold flex items-center gap-2">
+                        <Clock className="w-5 h-5" />
+                        Enter Your Target Time
+                      </Label>
                       <div className="flex flex-wrap items-end gap-4 mt-2">
                         <div className="grid gap-2 flex-1 min-w-40">
                           <Label htmlFor="hours" className="text-gray-300 font-medium">Hours</Label>
@@ -444,7 +438,7 @@ const RaceSplitsCalculator = () => {
                             id="hours"
                             type="number" min="2" max="8" value={targetHours}
                             onChange={(e) => setTargetHours(parseInt(e.target.value) || 2)}
-                            className="h-14 p-4 text-lg bg-white/10 text-white border-white/30 focus:border-primary"
+                            className="h-14 p-4 text-lg bg-white/10 text-white border-white/30 focus:border-primary transition-all"
                             placeholder="3"
                           />
                         </div>
@@ -454,7 +448,7 @@ const RaceSplitsCalculator = () => {
                             id="minutes"
                             type="number" min="0" max="59" value={targetMinutes}
                             onChange={(e) => setTargetMinutes(parseInt(e.target.value) || 0)}
-                            className="h-14 p-4 text-lg bg-white/10 text-white border-white/30 focus:border-primary"
+                            className="h-14 p-4 text-lg bg-white/10 text-white border-white/30 focus:border-primary transition-all"
                             placeholder="45"
                           />
                         </div>
@@ -464,29 +458,30 @@ const RaceSplitsCalculator = () => {
                             id="startTime"
                             type="time" value={startTime}
                             onChange={(e) => setStartTime(e.target.value)}
-                            className="h-14 p-4 text-lg bg-white/10 text-white border-white/30 focus:border-primary"
+                            className="h-14 p-4 text-lg bg-white/10 text-white border-white/30 focus:border-primary transition-all"
                           />
                         </div>
                       </div>
                     </div>
+                    
                     {paceValidation && (
-                      <Alert variant={paceValidation.level === 'error' ? 'destructive' : 'default'} className={cn('bg-opacity-20 border-opacity-40 text-white', {
+                      <Alert variant={paceValidation.level === 'error' ? 'destructive' : 'default'} className={cn('bg-opacity-20 border-opacity-40 text-white animate-in fade-in slide-in-from-top-4 duration-300', {
                         'bg-yellow-500/20 border-yellow-300/40 [&>svg]:text-yellow-300': paceValidation.level === 'warning',
                         'bg-blue-500/20 border-blue-300/40 [&>svg]:text-blue-300': paceValidation.level === 'info',
                         'bg-green-500/20 border-green-300/40 [&>svg]:text-green-300': paceValidation.level === 'success',
                         'bg-red-500/20 border-red-300/40 [&>svg]:text-red-300': paceValidation.level === 'error',
                       })}>
                         <paceValidation.Icon className="h-4 w-4" />
-                        <AlertTitle className="text-white">{paceValidation.title}</AlertTitle>
+                        <AlertTitle className="text-white font-bold">{paceValidation.title}</AlertTitle>
                         <AlertDescription className="text-gray-200">{paceValidation.message}</AlertDescription>
                       </Alert>
                     )}
 
-                    <Button onClick={handleCalculate} size="lg" className="h-14 w-full text-lg font-bold" disabled={isLoading}>
+                    <Button onClick={handleCalculate} size="lg" className="h-14 w-full text-lg font-bold shadow-xl transition-all hover:scale-[1.01]" disabled={isLoading}>
                       {isLoading ? (
                         <>
                           <Loader2 className="mr-2 animate-spin" />
-                          Generating...
+                          Generating Your Plan...
                         </>
                       ) : (
                         <>
@@ -502,69 +497,74 @@ const RaceSplitsCalculator = () => {
 
 
             {showResults && (
-              <div ref={resultsRef} className="mt-12 space-y-12">
+              <div ref={resultsRef} className="mt-12 space-y-12 animate-in fade-in duration-700">
                 <section>
-                    <div className="flex justify-between items-center">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
                             <h2 className="text-3xl font-bold tracking-tight">Your Race Plan</h2>
-                            <p className="text-muted-foreground mt-2">A detailed breakdown of your performance across each checkpoint.</p>
+                            <p className="text-muted-foreground mt-2">Personalized performance breakdown and weather forecast.</p>
                         </div>
-                        <Button onClick={downloadCSV} variant="outline" size="lg">
+                        <Button onClick={downloadCSV} variant="outline" size="lg" className="w-full md:w-auto shadow-sm">
                             <Download className="mr-2 h-4 w-4" />
                             Download CSV
                         </Button>
                     </div>
                   
-                  <div className="mt-6 grid grid-cols-1 gap-2 md:hidden">
-                    <Accordion type="single" collapsible className="w-full">
+                  <div className="mt-6 grid grid-cols-1 gap-4 md:hidden">
+                    <Accordion type="single" collapsible className="w-full space-y-3">
                       {splits.map((split, index) => (
-                        <AccordionItem value={`item-${index}`} key={index} className="border-b-0">
-                          <Card className="overflow-hidden mb-2">
-                             <AccordionTrigger className="w-full hover:no-underline">
-                              <CardHeader className="flex flex-row items-center justify-between p-4 w-full">
-                                <div>
-                                  <CardTitle className="text-lg text-left">{split.name}</CardTitle>
-                                  <CardDescription>{split.distance.toFixed(1)}km - {getDifficultyDescription(split.terrainFactor)}</CardDescription>
+                        <AccordionItem value={`item-${index}`} key={index} className="border-none">
+                          <Card className="overflow-hidden shadow-md border-primary/10">
+                             <AccordionTrigger className="w-full hover:no-underline px-4 py-4">
+                              <div className="flex flex-row items-center justify-between w-full pr-4">
+                                <div className="text-left">
+                                  <CardTitle className="text-lg font-bold">{split.name}</CardTitle>
+                                  <CardDescription className="flex items-center gap-1">
+                                    {split.distance.toFixed(1)}km • {getDifficultyDescription(split.terrainFactor)}
+                                  </CardDescription>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   {getDifficultyIcon(split.terrainFactor, 'text-2xl')}
                                 </div>
-                              </CardHeader>
+                              </div>
                             </AccordionTrigger>
                             <AccordionContent>
-                               <CardContent className="px-4 pb-4 space-y-4">
-                                <div className="grid grid-cols-2 gap-4 text-center border-b pb-4">
+                               <CardContent className="px-4 pb-4 space-y-4 pt-0">
+                                <div className="grid grid-cols-2 gap-4 text-center p-3 bg-muted/30 rounded-lg">
                                   <div>
-                                    <p className="text-sm text-muted-foreground">Arrival</p>
-                                    <p className="text-xl font-bold text-primary">{split.timeOfDay}</p>
+                                    <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Arrival</p>
+                                    <p className="text-xl font-black text-primary">{split.timeOfDay}</p>
                                   </div>
                                   <div>
-                                    <p className="text-sm text-muted-foreground">Split Time</p>
-                                    <p className="text-xl font-mono">{formatTime(split.splitTime).substring(0, 5)}</p>
+                                    <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Split Time</p>
+                                    <p className="text-xl font-mono font-bold">{formatTime(split.splitTime).substring(0, 5)}</p>
                                   </div>
                                    <div>
-                                    <p className="text-sm text-muted-foreground">Est. Speed</p>
-                                    <p className={cn("text-xl font-bold", split.terrainFactor >= 1.2 ? 'text-green-500' : split.terrainFactor < 0.8 ? 'text-red-500' : '')}>
+                                    <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Est. Speed</p>
+                                    <p className={cn("text-xl font-black", split.terrainFactor >= 1.2 ? 'text-green-500' : split.terrainFactor < 0.8 ? 'text-red-500' : '')}>
                                       {split.speedOnSplit.toFixed(1)} km/h
                                     </p>
                                   </div>
                                    <div>
-                                    <p className="text-sm text-muted-foreground">Avg. Speed</p>
-                                    <p className="text-xl font-mono">{split.movingAverageSpeed.toFixed(1)} km/h</p>
+                                    <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Avg. Speed</p>
+                                    <p className="text-xl font-mono font-bold">{split.movingAverageSpeed.toFixed(1)} km/h</p>
                                   </div>
                                 </div>
 
                                 {split.weather && (
-                                  <div className="pt-4 border-b pb-4">
-                                    <h4 className="text-sm font-semibold mb-2 text-center">Weather</h4>
-                                    <div className="flex items-center justify-center gap-4 text-center">
-                                      <span className="material-symbols-outlined text-4xl text-amber-500">{split.weather.icon}</span>
-                                      <div>
-                                        <p className="font-bold text-lg">{split.weather.temperature}°C</p>
+                                  <div className="p-3 border rounded-lg bg-card shadow-sm">
+                                    <h4 className="text-xs font-bold uppercase text-muted-foreground mb-2 text-center">Weather Forecast</h4>
+                                    <div className="flex items-center justify-center gap-6 text-center">
+                                      <div className="flex flex-col items-center">
+                                        <span className="material-symbols-outlined text-4xl text-amber-500 mb-1">{split.weather.icon}</span>
                                         <p className="text-xs text-muted-foreground">{split.weather.condition}</p>
                                       </div>
                                       <div>
-                                        <p className="font-bold text-lg">{split.weather.windSpeed} km/h</p>
+                                        <p className="font-black text-2xl">{split.weather.temperature}°C</p>
+                                        <p className="text-xs text-muted-foreground">Temp</p>
+                                      </div>
+                                      <div>
+                                        <p className="font-black text-2xl">{split.weather.windSpeed}</p>
                                         <p className="text-xs text-muted-foreground">Wind ({split.weather.windDirection})</p>
                                       </div>
                                     </div>
@@ -572,13 +572,18 @@ const RaceSplitsCalculator = () => {
                                 )}
                                 
                                 {split.nutritionEvents.length > 0 && (
-                                  <div className="pt-4">
-                                    <h4 className="text-sm font-semibold mb-2 text-center">Nutrition Alerts</h4>
+                                  <div className="p-3 border rounded-lg bg-card shadow-sm">
+                                    <h4 className="text-xs font-bold uppercase text-muted-foreground mb-2 text-center">Nutrition & Hydration</h4>
                                     <div className="flex flex-col gap-2">
                                       {split.nutritionEvents.map((event, idx) => (
-                                        <div key={idx} className={cn("flex items-center gap-2 text-xs p-1.5 rounded-md", event.isPreHillWarning ? 'bg-amber-100 dark:bg-amber-900/50' : 'bg-muted/50')}>
-                                          {event.type === 'fuel' ? <Fuel className="w-4 h-4 text-orange-500" /> : <Droplet className="w-4 h-4 text-blue-500" />}
-                                          <span>{event.details} at <strong>{event.timeOfDay}</strong></span>
+                                        <div key={idx} className={cn("flex items-center gap-3 text-sm p-2 rounded-md", event.isPreHillWarning ? 'bg-amber-100 dark:bg-amber-900/50 border border-amber-200 dark:border-amber-800' : 'bg-muted/50')}>
+                                          <div className="p-1.5 bg-background rounded-full">
+                                            {event.type === 'fuel' ? <Fuel className="w-4 h-4 text-orange-500" /> : <Droplet className="w-4 h-4 text-blue-500" />}
+                                          </div>
+                                          <div className="flex-1">
+                                            <p className="font-bold">{event.timeOfDay}</p>
+                                            <p className="text-xs text-muted-foreground">{event.details}</p>
+                                          </div>
                                         </div>
                                       ))}
                                     </div>
@@ -593,46 +598,49 @@ const RaceSplitsCalculator = () => {
                   </div>
 
                   <div className="hidden md:block mt-6">
-                    <Card>
+                    <Card className="shadow-lg border-primary/10 overflow-hidden">
                     <Table>
-                        <TableHeader>
+                        <TableHeader className="bg-muted/50">
                           <TableRow>
-                            <TableHead className="w-[180px]">Checkpoint</TableHead>
-                            <TableHead className="text-right">Arrival Time</TableHead>
-                            <TableHead className="text-right">Split Time</TableHead>
-                            <TableHead className="text-right">Split Speed</TableHead>
-                            <TableHead className="text-right">Avg. Speed</TableHead>
-                            <TableHead>Weather</TableHead>
-                            <TableHead>Nutrition</TableHead>
+                            <TableHead className="w-[180px] font-bold">Checkpoint</TableHead>
+                            <TableHead className="text-right font-bold">Arrival</TableHead>
+                            <TableHead className="text-right font-bold">Split Time</TableHead>
+                            <TableHead className="text-right font-bold">Split Speed</TableHead>
+                            <TableHead className="text-right font-bold">Avg. Speed</TableHead>
+                            <TableHead className="font-bold">Weather</TableHead>
+                            <TableHead className="font-bold">Nutrition</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {splits.map((split, index) => (
-                            <TableRow key={index}>
-                              <TableCell className="font-medium flex items-center gap-2">
+                            <TableRow key={index} className="hover:bg-muted/20 transition-colors">
+                              <TableCell className="font-bold flex items-center gap-2">
                                 {getDifficultyIcon(split.terrainFactor)}
                                 {split.name}
                               </TableCell>
-                              <TableCell className="text-right font-mono text-primary font-semibold">{split.timeOfDay}</TableCell>
-                              <TableCell className="text-right font-mono">{formatTime(split.splitTime)}</TableCell>
-                              <TableCell className={cn("text-right font-medium font-mono", split.terrainFactor >= 1.2 ? 'text-green-500' : split.terrainFactor < 0.8 ? 'text-red-500' : '')}>
+                              <TableCell className="text-right font-mono text-primary font-black text-lg">{split.timeOfDay}</TableCell>
+                              <TableCell className="text-right font-mono font-medium">{formatTime(split.splitTime)}</TableCell>
+                              <TableCell className={cn("text-right font-black font-mono", split.terrainFactor >= 1.2 ? 'text-green-500' : split.terrainFactor < 0.8 ? 'text-red-500' : '')}>
                                 {split.speedOnSplit.toFixed(1)} km/h
                               </TableCell>
-                              <TableCell className="text-right font-mono">{split.movingAverageSpeed.toFixed(1)} km/h</TableCell>
+                              <TableCell className="text-right font-mono font-bold">{split.movingAverageSpeed.toFixed(1)} km/h</TableCell>
                               <TableCell>
                                 {split.weather && (
-                                    <div className="flex items-center gap-2 text-xs">
-                                        <span className="material-symbols-outlined text-base text-amber-500">{split.weather.icon}</span>
-                                        <span>{split.weather.temperature}°C, {split.weather.windSpeed}km/h {split.weather.windDirection}</span>
+                                    <div className="flex items-center gap-2 text-xs font-medium">
+                                        <span className="material-symbols-outlined text-xl text-amber-500">{split.weather.icon}</span>
+                                        <div className="flex flex-col">
+                                          <span className="font-bold">{split.weather.temperature}°C</span>
+                                          <span className="text-muted-foreground">{split.weather.windSpeed} km/h {split.weather.windDirection}</span>
+                                        </div>
                                     </div>
                                 )}
                               </TableCell>
                               <TableCell>
                                 <div className="flex flex-col gap-1.5">
                                   {split.nutritionEvents.map((event, idx) => (
-                                      <div key={idx} className={cn("flex items-center gap-2 text-xs p-1 rounded-md", event.isPreHillWarning ? 'bg-amber-100 dark:bg-amber-900/50' : '')}>
+                                      <div key={idx} className={cn("flex items-center gap-2 text-xs p-1.5 rounded-md shadow-sm", event.isPreHillWarning ? 'bg-amber-100 dark:bg-amber-900/50 border border-amber-200' : 'bg-muted/50')}>
                                           {event.type === 'fuel' ? <Fuel className="w-3.5 h-3.5 text-orange-500" /> : <Droplet className="w-3.5 h-3.5 text-blue-500" />}
-                                          <span>@{event.timeOfDay}</span>
+                                          <span className="font-bold">@{event.timeOfDay}</span>
                                       </div>
                                   ))}
                                 </div>
@@ -646,52 +654,53 @@ const RaceSplitsCalculator = () => {
                 </section>
                 
                 <section>
-                    <h3 className="text-3xl font-bold tracking-tight">Terrain Legend</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-                        <Card className="flex items-center space-x-3 p-4">
-                            <span className="material-symbols-outlined text-green-500">trending_flat</span>
-                            <span className="text-sm text-muted-foreground">Fast / Flat</span>
-                        </Card>
-                         <Card className="flex items-center space-x-3 p-4">
-                            <span className="material-symbols-outlined text-yellow-500">show_chart</span>
-                            <span className="text-sm text-muted-foreground">Rolling Hills</span>
-                        </Card>
-                         <Card className="flex items-center space-x-3 p-4">
-                            <span className="material-symbols-outlined text-orange-500">trending_up</span>
-                            <span className="text-sm text-muted-foreground">Climb</span>
-                        </Card>
-                         <Card className="flex items-center space-x-3 p-4">
-                            <span className="material-symbols-outlined text-red-500">altitude</span>
-                            <span className="text-sm text-muted-foreground">Steep Climb</span>
-                        </Card>
+                    <h3 className="text-2xl font-bold tracking-tight mb-6">Terrain Legend</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {[
+                          { icon: 'trending_flat', color: 'text-green-500', label: 'Fast / Flat' },
+                          { icon: 'show_chart', color: 'text-yellow-500', label: 'Rolling Hills' },
+                          { icon: 'trending_up', color: 'text-orange-500', label: 'Climb' },
+                          { icon: 'altitude', color: 'text-red-500', label: 'Steep Climb' }
+                        ].map((item, i) => (
+                          <Card key={i} className="flex items-center space-x-3 p-4 hover:bg-muted/30 transition-colors shadow-sm">
+                            <span className={cn("material-symbols-outlined", item.color)}>{item.icon}</span>
+                            <span className="text-sm font-semibold">{item.label}</span>
+                          </Card>
+                        ))}
                     </div>
                 </section>
 
                  {nutritionEvents.length > 0 && (
                     <section>
-                      <Card>
-                          <CardHeader>
-                              <CardTitle className="text-3xl font-bold tracking-tight">Nutrition Timeline</CardTitle>
+                      <Card className="shadow-xl border-primary/5">
+                          <CardHeader className="border-b bg-muted/30">
+                              <CardTitle className="text-2xl font-bold tracking-tight">Full Nutrition Timeline</CardTitle>
                               <CardDescription>
-                                  Your personalized fueling and hydration plan based on a <strong>{nutritionStrategy}</strong> strategy.
+                                  Strategic fueling and hydration plan for a <strong>{nutritionStrategy}</strong> strategy.
                               </CardDescription>
                           </CardHeader>
-                          <CardContent>
-                              <ScrollArea className="h-[300px] w-full pr-4">
-                                  <div className="relative pl-6">
-                                      <div className="absolute left-[8px] h-full w-0.5 bg-border"></div>
+                          <CardContent className="pt-6">
+                              <ScrollArea className="h-[400px] w-full pr-4">
+                                  <div className="relative pl-8">
+                                      <div className="absolute left-[9px] h-full w-0.5 bg-gradient-to-b from-primary/50 to-muted"></div>
                                       {nutritionEvents.map((event, index) => (
-                                          <div key={index} className="mb-8 flex items-start gap-4">
-                                              <div className={cn("mt-1 flex-shrink-0 h-4 w-4 rounded-full border-4 flex items-center justify-center", event.type === 'fuel' ? 'bg-orange-500 border-orange-300' : 'bg-blue-500 border-blue-300')}>
+                                          <div key={index} className="mb-8 flex items-start gap-4 animate-in slide-in-from-left duration-500" style={{ animationDelay: `${index * 50}ms` }}>
+                                              <div className={cn("mt-1.5 flex-shrink-0 h-4.5 w-4.5 rounded-full border-4 flex items-center justify-center shadow-md", event.type === 'fuel' ? 'bg-orange-500 border-orange-100 dark:border-orange-950' : 'bg-blue-500 border-blue-100 dark:border-blue-950')}>
                                               </div>
-                                              <div className="flex-grow">
-                                                  <p className="font-bold">{event.timeOfDay} ({event.distance.toFixed(1)} km)</p>
-                                                  <p className="text-sm text-muted-foreground">{event.details}</p>
-                                                  <p className="text-xs text-muted-foreground">{event.checkpointName}</p>
+                                              <div className="flex-grow p-4 bg-muted/20 rounded-xl border border-transparent hover:border-primary/20 transition-all">
+                                                  <div className="flex justify-between items-center mb-1">
+                                                    <p className="font-black text-lg">{event.timeOfDay}</p>
+                                                    <span className="text-xs font-bold text-muted-foreground bg-muted px-2 py-1 rounded-full">{event.distance.toFixed(1)} km</span>
+                                                  </div>
+                                                  <p className="text-sm font-medium">{event.details}</p>
+                                                  <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                                                    <Map className="w-3 h-3" />
+                                                    {event.checkpointName}
+                                                  </p>
                                                   {event.isPreHillWarning && (
-                                                      <div className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-amber-600 dark:text-amber-400 p-1.5 bg-amber-100 dark:bg-amber-900/50 rounded-md">
-                                                          <AlertTriangle className="w-3.5 h-3.5" />
-                                                          <span>Fuel before the next big climb!</span>
+                                                      <div className="mt-3 flex items-center gap-2 text-xs font-bold text-amber-700 dark:text-amber-400 p-2 bg-amber-100/50 dark:bg-amber-900/30 rounded-lg border border-amber-200/50">
+                                                          <AlertTriangle className="w-4 h-4 animate-pulse" />
+                                                          <span>PRE-CLIMB FUEL: Energy needed for upcoming ascent!</span>
                                                       </div>
                                                   )}
                                               </div>
@@ -706,34 +715,157 @@ const RaceSplitsCalculator = () => {
               </div>
             )}
 
-            <footer ref={footerRef} className="mt-16 border-t pt-8 pb-8">
-              <div className="flex flex-col md:flex-row justify-between items-center text-sm text-muted-foreground">
-                <p>
-                  A passion project by{' '}
-                  <Link href="https://strava.app.link/FSnhCW2qsXb" target="_blank" className="font-semibold text-primary underline hover:text-primary/80">
-                    Spera Didiza
-                  </Link>
-                  . © {new Date().getFullYear()} RideWise Splits.
-                </p>
-                <div className="flex space-x-4 mt-4 md:mt-0 items-center">
-                    <Button asChild variant="link" className={cn("text-primary hover:text-primary/80", isAtBottom ? "relative" : "hidden")}>
-                        <Link href="https://paystack.shop/pay/spera" target="_blank">
-                        <Coffee className="mr-2" />
-                        Buy me a coffee
-                        </Link>
+            {/* Bento Grid Shelf */}
+            <section className="mt-24 space-y-8">
+              <div className="text-center">
+                <h2 className="text-3xl font-black tracking-tight">The RideWise Shelf</h2>
+                <p className="text-muted-foreground mt-2 font-medium">Explore more rides, training, and community projects.</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Featured: Cape Town Cycle Tour */}
+                <Card className="md:col-span-2 relative overflow-hidden group shadow-lg border-primary/5 min-h-[300px]">
+                  <div 
+                    className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" 
+                    style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.8)), url("${ctctImage?.imageUrl}")` }}
+                  />
+                  <CardHeader className="relative z-10 text-white mt-auto h-full flex flex-col justify-end">
+                    <div className="bg-primary/20 backdrop-blur-md self-start px-3 py-1 rounded-full text-xs font-bold mb-3 border border-white/20 flex items-center gap-2">
+                      <Calendar className="w-3 h-3" />
+                      COMING MARCH 2025
+                    </div>
+                    <CardTitle className="text-3xl font-black">Cape Town Cycle Tour</CardTitle>
+                    <CardDescription className="text-gray-200 text-lg font-medium mt-2">
+                      The world's largest timed cycle race. We're building a dedicated terrain-adjusted calculator for the coastal winds.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardFooter className="relative z-10 pt-0">
+                    <Button variant="secondary" className="font-bold shadow-lg">
+                      Notify Me
                     </Button>
+                  </CardFooter>
+                </Card>
+
+                {/* Spin Tribe */}
+                <Card className="flex flex-col bg-primary text-primary-foreground shadow-lg border-none overflow-hidden relative group">
+                   <div 
+                    className="absolute inset-0 opacity-20 bg-cover bg-center transition-opacity duration-500 group-hover:opacity-30" 
+                    style={{ backgroundImage: `url("${spinTribeImage?.imageUrl}")` }}
+                  />
+                  <CardHeader className="relative z-10">
+                    <GraduationCap className="w-12 h-12 mb-4" />
+                    <CardTitle className="text-2xl font-black">Spin Tribe</CardTitle>
+                    <CardDescription className="text-primary-foreground/80 font-medium">
+                      Master your ride with expert-led cycling lessons and community workshops.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardFooter className="mt-auto relative z-10">
+                    <Button variant="outline" className="w-full font-bold bg-white/10 border-white/20 hover:bg-white/20 text-white">
+                      Explore Lessons
+                    </Button>
+                  </CardFooter>
+                </Card>
+
+                {/* Training Plans */}
+                <Card className="shadow-lg border-primary/5 hover:border-primary/20 transition-all group">
+                  <CardHeader>
+                    <div className="p-3 bg-primary/10 rounded-xl w-fit mb-2 group-hover:bg-primary/20 transition-colors">
+                      <Bike className="w-6 h-6 text-primary" />
+                    </div>
+                    <CardTitle className="text-xl font-bold tracking-tight">Training Plans</CardTitle>
+                    <CardDescription className="font-medium">
+                      Power-based plans tailored for high-altitude South African racing.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardFooter className="mt-auto">
+                    <Button variant="ghost" className="p-0 font-bold hover:bg-transparent text-primary hover:text-primary/80 flex items-center gap-2">
+                      See Plans <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </CardFooter>
+                </Card>
+
+                {/* Community Forum */}
+                <Card className="shadow-lg border-primary/5 hover:border-primary/20 transition-all group">
+                  <CardHeader>
+                    <div className="p-3 bg-accent/10 rounded-xl w-fit mb-2 group-hover:bg-accent/20 transition-colors">
+                      <Users className="w-6 h-6 text-accent" />
+                    </div>
+                    <CardTitle className="text-xl font-bold tracking-tight">The Pelaton</CardTitle>
+                    <CardDescription className="font-medium">
+                      Join the local community of RideWise athletes to swap tips and strategies.
+                    </CardDescription>
+                  </CardHeader>
+                   <CardFooter className="mt-auto">
+                    <Button variant="ghost" className="p-0 font-bold hover:bg-transparent text-accent hover:text-accent/80 flex items-center gap-2">
+                      Join Community <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </CardFooter>
+                </Card>
+
+                {/* Suggest a Race */}
+                <Card className="shadow-lg border-primary/5 hover:border-primary/20 transition-all border-dashed bg-muted/20 flex flex-col items-center justify-center p-8 text-center">
+                  <div className="p-4 bg-muted rounded-full mb-4">
+                    <ExternalLink className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                  <CardTitle className="text-lg font-bold">Your Ride Here?</CardTitle>
+                  <CardDescription className="mt-2 mb-4 font-medium">
+                    Want a specific race added to the calculator?
+                  </CardDescription>
+                  <Button variant="outline" className="font-bold">Request Race</Button>
+                </Card>
+              </div>
+            </section>
+
+            <footer ref={footerRef} className="mt-24 border-t pt-12 pb-12">
+              <div className="flex flex-col md:flex-row justify-between items-center gap-8">
+                <div className="text-center md:text-left">
+                  <p className="text-sm text-muted-foreground font-medium">
+                    A passion project for the South African cycling community by{' '}
+                    <Link 
+                      href="https://strava.app.link/FSnhCW2qsXb" 
+                      target="_blank" 
+                      className="font-black text-primary underline underline-offset-4 decoration-2 hover:text-primary/80 transition-colors"
+                    >
+                      Spera Didiza
+                    </Link>
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    © {new Date().getFullYear()} RideWise Splits. All rights reserved.
+                  </p>
+                </div>
+                
+                <div className="flex flex-wrap justify-center gap-4">
+                  <Button asChild variant="outline" className="font-bold border-primary/20 hover:border-primary/40">
+                    <Link href="https://strava.app.link/FSnhCW2qsXb" target="_blank">
+                      <Heart className="mr-2 h-4 w-4 text-red-500 fill-red-500" />
+                      Follow on Strava
+                    </Link>
+                  </Button>
+                  <Button asChild variant="link" className={cn("text-primary hover:text-primary/80 font-bold", isAtBottom ? "flex" : "hidden")}>
+                      <Link href="https://paystack.shop/pay/spera" target="_blank">
+                      <Coffee className="mr-2" />
+                      Buy me a coffee
+                      </Link>
+                  </Button>
                 </div>
               </div>
             </footer>
           </div>
         </main>
+        
         <Link 
             href="https://paystack.shop/pay/spera" 
             target="_blank" 
-            className={cn("fixed bottom-6 right-6 z-50 h-16 w-16 bg-primary rounded-full flex items-center justify-center text-white shadow-lg transition-transform duration-300 hover:scale-110", isAtBottom ? "translate-y-24" : "translate-y-0")}
+            className={cn(
+              "fixed bottom-6 right-6 z-50 h-16 w-16 bg-primary rounded-full flex items-center justify-center text-white shadow-2xl transition-all duration-500 hover:scale-110 active:scale-95 group",
+              isAtBottom ? "translate-y-24 opacity-0" : "translate-y-0 opacity-100"
+            )}
         >
-            <Coffee className="w-8 h-8" />
+            <Coffee className="w-8 h-8 group-hover:animate-bounce" />
             <span className="sr-only">Buy me a coffee</span>
+            <div className="absolute -top-10 right-0 bg-white text-primary text-[10px] font-black px-2 py-1 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border">
+              SUPPORT THE PROJECT
+            </div>
         </Link>
       </div>
     </div>

@@ -3,14 +3,26 @@
     {
       "id": "cyclist-hero",
       "description": "A dynamic image of a cyclist in motion, blurred to convey speed.",
-      "imageUrl": "https://picsum.photos/seed/cyclist1/1200/800",
+      "imageUrl": "https://images.unsplash.com/photo-1660658344279-8d54f0be4c18?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxjeWNsaXN0JTIwbW90aW9ufGVufDB8fHx8MTc3MTQxNTY1N3ww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "cyclist motion"
     },
     {
       "id": "cyclist-hero-2",
       "description": "A close-up shot of a cyclist from behind on a sunny day.",
-      "imageUrl": "https://picsum.photos/seed/cyclist2/1200/800",
+      "imageUrl": "https://images.unsplash.com/photo-1528445253696-6597e9abc5cc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxjeWNsaXN0JTIwc3Vubnl8ZW58MHx8fHwxNzcxNDE1NjU3fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "cyclist sunny"
+    },
+    {
+      "id": "ctct-preview",
+      "description": "Aerial view of a coastal road in Cape Town.",
+      "imageUrl": "https://images.unsplash.com/photo-1507754584627-c6288164187d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjYXBlJTIwdG93biUyMGNvYXN0YWx8ZW58MHx8fHwxNzcxNDE1NjU3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cape town coastal"
+    },
+    {
+      "id": "spin-tribe-preview",
+      "description": "A group of cyclists training together indoors.",
+      "imageUrl": "https://images.unsplash.com/photo-1753769914520-394cf8b645f8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxjeWNsaW5nJTIwdHJhaW5pbmclMjBncm91cHxlbnwwfHx8fDE3NzE0MTU2NTd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cycling training group"
     }
   ]
 }
