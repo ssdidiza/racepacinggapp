@@ -59,27 +59,72 @@ export const RACE_CONFIGS: RaceConfig[] = [
     shortName: 'CTCT',
     distance: 109,
     location: 'Cape Town, South Africa',
-    defaultStartTime: '06:30',
+    defaultStartTime: '07:00',
     month: 'March',
     checkpoints: [
-      { name: 'Constantia 9.9km', distance: 9.9, terrainFactor: 0.94, description: 'Rolling coastal start — expect peloton congestion, settle into your rhythm' },
-      { name: "Simon's Town 20.8km", distance: 20.8, terrainFactor: 1.27, description: 'Fast coastal section — includes steep climb then big descent to Simon\'s Town' },
-      { name: 'Klaas Jagersberg 37.9km', distance: 37.9, terrainFactor: 1.16, description: 'Fast flat return leg — bank time here, the OKW climb is coming' },
-      { name: 'Perdekloof 51.2km', distance: 51.2, terrainFactor: 0.94, description: '⚠️ Ou Kaapse Weg — 5km sustained climb at ~20 km/h, biggest challenge on the route' },
-      { name: 'Noordhoek 62km', distance: 62.0, terrainFactor: 1.18, description: 'OKW descent into Noordhoek valley — fast recovery, let the legs spin out' },
-      { name: 'Hout Bay 70.1km', distance: 70.1, terrainFactor: 1.12, description: 'Rolling coastal section into Hout Bay — manageable hills, stay fuelled' },
-      { name: 'Tokai 89km', distance: 89.0, terrainFactor: 1.03, description: 'Mixed terrain — notable climb (+96m) followed by big descent (-149m), nets average pace' },
-      { name: 'Suikerbossie 95km', distance: 95.0, terrainFactor: 0.96, description: '⚠️ Suikerbossie climb (+133m at 15 km/h) — the final major climb, give everything you have' },
-      { name: 'Finish Green Point 109km', distance: 109.0, terrainFactor: 1.08, description: 'Fast descent then flat run into Cape Town city centre — empty the tank all the way to Green Point' }
+      { 
+        name: 'Strand St 1km', 
+        distance: 1.0, 
+        terrainFactor: 0.54, 
+        description: 'Peloton rollout — 15 km/h average due to mass start. Do NOT panic, this is normal.' 
+      },
+      { 
+        name: 'Edinburg Dr 11.3km', 
+        distance: 11.3, 
+        terrainFactor: 0.82, 
+        description: 'Rolling southern suburbs — early congestion clears, but undulating terrain keeps pace honest' 
+      },
+      { 
+        name: 'Tokai 17.5km', 
+        distance: 17.5, 
+        terrainFactor: 1.00, 
+        description: 'Moderate tempo — roads open up, find your race rhythm here' 
+      },
+      { 
+        name: 'Fish Hoek 27.3km', 
+        distance: 27.3, 
+        terrainFactor: 1.05, 
+        description: 'Slightly above average pace — False Bay coastal road, flat and fast' 
+      },
+      { 
+        name: "Simon's Town 35.3km", 
+        distance: 35.3, 
+        terrainFactor: 1.07, 
+        description: 'Fastest leg — descent into Simon\'s Town, southernmost turnaround point. Bank this time.' 
+      },
+      { 
+        name: 'Scarborough 57.9km', 
+        distance: 57.9, 
+        terrainFactor: 1.04, 
+        description: '⚠️ Ou Kaapse Weg climb is in this segment — but the descent to Scarborough compensates. Survive the climb (5km at ~20 km/h) and the descent rewards you.' 
+      },
+      { 
+        name: 'Noordhoek 74.3km', 
+        distance: 74.3, 
+        terrainFactor: 1.05, 
+        description: 'Noordhoek valley — wide open roads, possible Cape Doctor headwind. Stay aero.' 
+      },
+      { 
+        name: 'Hout Bay 87km', 
+        distance: 87.0, 
+        terrainFactor: 1.02, 
+        description: 'Rolling coastal section into Hout Bay — stay fuelled for what\'s coming' 
+      },
+      { 
+        name: 'Finish Green Point 109km', 
+        distance: 109.0, 
+        terrainFactor: 1.01, 
+        description: '⚠️ Suikerbossie climb at 88-95km (+133m). After the summit, descend and empty the tank all the way to Green Point finish.' 
+      },
     ],
-    hillWarningCheckpoints: ["Perdekloof 51.2km", "Suikerbossie 95km"],
+    hillWarningCheckpoints: ["Scarborough 57.9km", "Finish Green Point 109km"],
     paceValidation: {
-      minMinutes: 200,
-      eliteMinutes: 225,
-      beginnerWarningMinutes: 270
+      minMinutes: 210,
+      eliteMinutes: 190,
+      beginnerWarningMinutes: 330
     },
     csvFilenamePrefix: 'ctct_109km_splits',
-    infoBanner: "Ou Kaapse Weg at 44-50km and Suikerbossie at 88-95km are the defining climbs"
+    infoBanner: "Ou Kaapse Weg is buried in the 35-58km leg. Suikerbossie is the final sting at 88-95km. The peloton start means your first 1km will show 15 km/h — that's normal."
   }
 ];
 

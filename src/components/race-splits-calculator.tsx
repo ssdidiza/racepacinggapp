@@ -463,7 +463,7 @@ const RaceSplitsCalculator = () => {
                         </div>
                       </div>
 
-                      <div>
+                      <div className="flex flex-col gap-2">
                         <Label className="text-white text-lg font-bold flex items-center gap-2">
                           <Clock className="w-5 h-5" />
                           Race Start Time
@@ -472,8 +472,13 @@ const RaceSplitsCalculator = () => {
                           type="time"
                           value={startTime}
                           onChange={(e) => setStartTime(e.target.value)}
-                          className="h-12 mt-2 bg-white/10 text-white border-white/30 focus:border-primary transition-all"
+                          className="h-12 bg-white/10 text-white border-white/30 focus:border-primary transition-all"
                         />
+                        {selectedRaceId === 'ctct' && (
+                          <p className="text-[10px] text-blue-300 font-medium animate-in fade-in slide-in-from-top-1">
+                            CTCT uses batched starts. Check your batch time — early seeded riders start ~05:30, general entries 07:00–09:00+
+                          </p>
+                        )}
                       </div>
                     </div>
 
