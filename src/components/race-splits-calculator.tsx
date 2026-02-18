@@ -15,16 +15,8 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { getWeatherForecast } from '@/ai/flows/weather-flow';
 import { type WeatherForecast, type HourlyForecast } from '@/ai/schemas/weather-schema';
+import { RACE_CONFIGS, getRaceConfig, type RaceConfig, type Checkpoint } from '@/lib/race-configs';
 
-
-type TerrainFactor = 1.0 | 1.25 | 0.75 | 0.65 | 0.85;
-
-interface Checkpoint {
-  name: string;
-  distance: number;
-  terrainFactor: TerrainFactor;
-  description: string;
-}
 
 interface Split {
   name: string;
@@ -36,7 +28,7 @@ interface Split {
   splitDistance: number;
   speedOnSplit: number;
   movingAverageSpeed: number;
-  terrainFactor: TerrainFactor;
+  terrainFactor: number;
   description: string;
   nutritionEvents: NutritionEvent[];
   weather?: HourlyForecast;
@@ -65,6 +57,7 @@ type RiderProfile = 'beginner' | 'intermediate' | 'pro';
 
 
 const RaceSplitsCalculator = () => {
+  const [selectedRaceId, setSelectedRaceId] = useState<string>('947-joburg');
   const [targetHours, setTargetHours] = useState(3);
   const [targetMinutes, setTargetMinutes] = useState(45);
   const [startTime, setStartTime] = useState('06:00');
@@ -80,23 +73,12 @@ const RaceSplitsCalculator = () => {
   const [isAtBottom, setIsAtBottom] = useState(false);
   const footerRef = useRef<HTMLDivElement>(null);
 
-
-  const checkpoints: Checkpoint[] = [
-    { name: 'M1 17km', distance: 17, terrainFactor: 1.0, description: 'Moderate start, mixed terrain' },
-    { name: 'Kyalami Entrance 44.2km', distance: 44.2, terrainFactor: 1.25, description: 'Fast section - downhill/flat' },
-    { name: 'Kyalami Exit 49.3km', distance: 49.3, terrainFactor: 0.75, description: 'Challenging hills - expect slowdown' },
-    { name: 'Mandela Bridge 84.2km', distance: 84.2, terrainFactor: 0.65, description: 'Toughest section - major hills' },
-    { name: 'Finish 98km', distance: 98, terrainFactor: 0.85, description: 'Final push - mixed terrain' }
-  ];
-
-  const heroImage = PlaceHolderImages.find(p => p.id === 'cyclist-hero-2');
-  const ctctImage = PlaceHolderImages.find(p => p.id === 'ctct-preview');
-  const spinTribeImage = PlaceHolderImages.find(p => p.id === 'spin-tribe-preview');
+  const currentRace = getRaceConfig(selectedRaceId);
 
   useEffect(() => {
     validatePace();
     setShowResults(false);
-  }, [targetHours, targetMinutes, riderProfile]);
+  }, [targetHours, targetMinutes, riderProfile, selectedRaceId]);
   
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -120,23 +102,22 @@ const RaceSplitsCalculator = () => {
 
   const validatePace = () => {
     const totalMinutes = targetHours * 60 + targetMinutes;
+    const { minMinutes, eliteMinutes } = currentRace.paceValidation;
 
-    if (riderProfile === 'beginner' && totalMinutes < 240) { // Under 4 hours
-        setPaceValidation({ level: 'warning', title: 'Ambitious Pace for a Beginner', message: 'This is a very fast time for a first-timer. Make sure your training supports this goal!', Icon: AlertTriangle });
-    } else if (riderProfile === 'pro' && totalMinutes > 240) { // Over 4 hours
+    if (riderProfile === 'beginner' && totalMinutes < eliteMinutes * 1.33) { 
+        setPaceValidation({ level: 'warning', title: 'Ambitious Pace for a Beginner', message: 'This is a very fast time for a beginner. Make sure your training supports this goal!', Icon: AlertTriangle });
+    } else if (riderProfile === 'pro' && totalMinutes > eliteMinutes * 1.5) { 
         setPaceValidation({ level: 'info', title: 'Cruising Pace for a Pro', message: 'This seems like a relaxed pace for a pro rider. Planning an easy day?', Icon: Coffee });
-    } else if (totalMinutes < 150) { 
+    } else if (totalMinutes < minMinutes) { 
       setPaceValidation({ level: 'error', title: 'Elite Professional Pace', message: 'This is a world-class time, typically reserved for professional cyclists. Please ensure this is a realistic goal.', Icon: XCircle });
-    } else if (totalMinutes < 180) { 
+    } else if (totalMinutes < eliteMinutes) { 
       setPaceValidation({ level: 'warning', title: 'Very Aggressive Pace', message: 'This is a highly competitive goal for experienced racers. It requires dedicated training and race strategy.', Icon: AlertTriangle });
-    } else if (totalMinutes < 210) { 
+    } else if (totalMinutes < eliteMinutes * 1.2) { 
       setPaceValidation({ level: 'info', title: 'Competitive Time', message: 'A strong and challenging goal for dedicated recreational cyclists. Great job!', Icon: Info });
-    } else if (totalMinutes <= 270) {
+    } else if (totalMinutes <= eliteMinutes * 1.5) {
       setPaceValidation({ level: 'success', title: 'Realistic & Achievable', message: 'This is a great target for most riders. With consistent training, you can achieve this!', Icon: CheckCircle2 });
-    } else if (totalMinutes <= 360) { 
-      setPaceValidation({ level: 'info', title: 'Leisurely & Enjoyable Pace', message: 'A comfortable pace to enjoy the ride and soak in the atmosphere. Perfect for a fun day out.', Icon: Coffee });
     } else { 
-      setPaceValidation({ level: 'warning', title: 'Very Conservative Pace', message: 'This pace is quite relaxed. Be mindful of official cut-off times along the route.', Icon: AlertTriangle });
+      setPaceValidation({ level: 'info', title: 'Leisurely & Enjoyable Pace', message: 'A comfortable pace to enjoy the ride and soak in the atmosphere. Perfect for a fun day out.', Icon: Coffee });
     }
   };
 
@@ -159,14 +140,14 @@ const RaceSplitsCalculator = () => {
     return newDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
   };
   
-  const getDifficultyIcon = (terrainFactor: TerrainFactor, className?: string) => {
+  const getDifficultyIcon = (terrainFactor: number, className?: string) => {
     if (terrainFactor >= 1.2) return <span className={cn("material-symbols-outlined text-green-500", className)}>trending_flat</span>;
     if (terrainFactor >= 0.8 && terrainFactor < 1.2) return <span className={cn("material-symbols-outlined text-yellow-500", className)}>show_chart</span>;
     if (terrainFactor >= 0.7 && terrainFactor < 0.8) return <span className={cn("material-symbols-outlined text-orange-500", className)}>trending_up</span>;
     return <span className={cn("material-symbols-outlined text-red-500", className)}>altitude</span>;
   };
   
-  const getDifficultyDescription = (terrainFactor: TerrainFactor) => {
+  const getDifficultyDescription = (terrainFactor: number) => {
     if (terrainFactor >= 1.2) return "Fast";
     if (terrainFactor >= 0.8) return "Moderate";
     return "Hilly";
@@ -193,22 +174,22 @@ const RaceSplitsCalculator = () => {
     
     // Fetch weather forecast
     const forecast = await getWeatherForecast({
-      location: 'Johannesburg, South Africa',
+      location: currentRace.location,
       raceStartTime: startTime,
       raceHours: targetHours,
     });
     setWeatherForecast(forecast);
 
-    const totalDistance = 98;
+    const totalDistance = currentRace.distance;
     
     const baseAverageSpeed = totalDistance / (targetTotalMinutes / 60);
     
     let calculatedSplits: Omit<Split, 'movingAverageSpeed' | 'nutritionEvents' | 'timeOfDay' | 'weather'>[] = [];
     let cumulativeTime = 0;
     
-    for (let i = 0; i < checkpoints.length; i++) {
-      const checkpoint = checkpoints[i];
-      const prevDistance = i === 0 ? 0 : checkpoints[i - 1].distance;
+    for (let i = 0; i < currentRace.checkpoints.length; i++) {
+      const checkpoint = currentRace.checkpoints[i];
+      const prevDistance = i === 0 ? 0 : currentRace.checkpoints[i - 1].distance;
       const splitDistance = checkpoint.distance - prevDistance;
       
       const adjustedSpeed = baseAverageSpeed * checkpoint.terrainFactor;
@@ -295,7 +276,7 @@ const RaceSplitsCalculator = () => {
       const timeIntoSplit = time - prevTime;
       const distance = prevDistance + (timeIntoSplit / split.splitTime) * split.splitDistance;
   
-      const isPreHillWarning = (split.name === 'Kyalami Exit 49.3km' || split.name === 'Mandela Bridge 84.2km') && (split.timeToPoint - time < 15);
+      const isPreHillWarning = currentRace.hillWarningCheckpoints.includes(split.name) && (split.timeToPoint - time < 15);
   
       events.push({
         time,
@@ -370,12 +351,16 @@ const RaceSplitsCalculator = () => {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `947_ride_terrain_splits_${targetHours}h${targetMinutes}m.csv`;
+    a.download = `${currentRace.csvFilenamePrefix}_${targetHours}h${targetMinutes}m.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
   };
+
+  const heroImage = PlaceHolderImages.find(p => p.id === 'cyclist-hero-2');
+  const ctctImage = PlaceHolderImages.find(p => p.id === 'ctct-preview');
+  const spinTribeImage = PlaceHolderImages.find(p => p.id === 'spin-tribe-preview');
 
   return (
     <div className="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden bg-background">
@@ -395,33 +380,59 @@ const RaceSplitsCalculator = () => {
                   Plan Your Perfect Race
                 </h1>
                 <h2 className="text-lg text-gray-200 md:text-xl font-medium">
-                  Enter your target time for the 947 Ride Joburg.
+                  Enter your race details for a personalized pacing strategy.
                 </h2>
               </div>
               
               <Card className="bg-card/80 backdrop-blur-sm border-white/20 shadow-2xl">
                 <CardContent className="p-6">
                   <div className="grid gap-6">
-                    <div>
-                      <Label className="text-white text-lg font-bold flex items-center gap-2">
-                        <Users className="w-5 h-5" />
-                        Rider Profile
-                      </Label>
-                      <div className="flex mt-2">
-                        <div className="flex h-12 flex-1 items-center justify-center rounded-lg bg-white/10 p-1">
-                          {(['beginner', 'intermediate', 'pro'] as RiderProfile[]).map(profile => (
-                            <label key={profile} className="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-md px-3 has-[:checked]:bg-primary has-[:checked]:shadow-md has-[:checked]:text-white text-gray-300 text-sm font-medium transition-all duration-200">
-                              <span className="truncate capitalize">{profile}</span>
-                              <input 
-                                className="invisible w-0" 
-                                name="rider-profile" 
-                                type="radio" 
-                                value={profile}
-                                checked={riderProfile === profile}
-                                onChange={() => setRiderProfile(profile)}
-                              />
-                            </label>
-                          ))}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <Label className="text-white text-lg font-bold flex items-center gap-2">
+                          <Map className="w-5 h-5" />
+                          Select Race
+                        </Label>
+                        <div className="flex mt-2">
+                          <div className="flex h-12 flex-1 items-center justify-center rounded-lg bg-white/10 p-1">
+                            {RACE_CONFIGS.map(race => (
+                              <label key={race.id} className="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-md px-3 has-[:checked]:bg-primary has-[:checked]:shadow-md has-[:checked]:text-white text-gray-300 text-sm font-medium transition-all duration-200">
+                                <span className="truncate">{race.shortName}</span>
+                                <input 
+                                  className="invisible w-0" 
+                                  name="race-select" 
+                                  type="radio" 
+                                  value={race.id}
+                                  checked={selectedRaceId === race.id}
+                                  onChange={() => setSelectedRaceId(race.id)}
+                                />
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label className="text-white text-lg font-bold flex items-center gap-2">
+                          <Users className="w-5 h-5" />
+                          Rider Profile
+                        </Label>
+                        <div className="flex mt-2">
+                          <div className="flex h-12 flex-1 items-center justify-center rounded-lg bg-white/10 p-1">
+                            {(['beginner', 'intermediate', 'pro'] as RiderProfile[]).map(profile => (
+                              <label key={profile} className="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-md px-3 has-[:checked]:bg-primary has-[:checked]:shadow-md has-[:checked]:text-white text-gray-300 text-sm font-medium transition-all duration-200">
+                                <span className="truncate capitalize">{profile}</span>
+                                <input 
+                                  className="invisible w-0" 
+                                  name="rider-profile" 
+                                  type="radio" 
+                                  value={profile}
+                                  checked={riderProfile === profile}
+                                  onChange={() => setRiderProfile(profile)}
+                                />
+                              </label>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -436,7 +447,7 @@ const RaceSplitsCalculator = () => {
                           <Label htmlFor="hours" className="text-gray-300 font-medium">Hours</Label>
                           <Input
                             id="hours"
-                            type="number" min="2" max="8" value={targetHours}
+                            type="number" min="1" max="10" value={targetHours}
                             onChange={(e) => setTargetHours(parseInt(e.target.value) || 2)}
                             className="h-14 p-4 text-lg bg-white/10 text-white border-white/30 focus:border-primary transition-all"
                             placeholder="3"
@@ -481,7 +492,7 @@ const RaceSplitsCalculator = () => {
                       {isLoading ? (
                         <>
                           <Loader2 className="mr-2 animate-spin" />
-                          Generating Your Plan...
+                          Generating {currentRace.shortName} Plan...
                         </>
                       ) : (
                         <>
@@ -501,7 +512,7 @@ const RaceSplitsCalculator = () => {
                 <section>
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
-                            <h2 className="text-3xl font-bold tracking-tight">Your Race Plan</h2>
+                            <h2 className="text-3xl font-bold tracking-tight">{currentRace.name} Plan</h2>
                             <p className="text-muted-foreground mt-2">Personalized performance breakdown and weather forecast.</p>
                         </div>
                         <Button onClick={downloadCSV} variant="outline" size="lg" className="w-full md:w-auto shadow-sm">
@@ -732,16 +743,23 @@ const RaceSplitsCalculator = () => {
                   <CardHeader className="relative z-10 text-white mt-auto h-full flex flex-col justify-end">
                     <div className="bg-primary/20 backdrop-blur-md self-start px-3 py-1 rounded-full text-xs font-bold mb-3 border border-white/20 flex items-center gap-2">
                       <Calendar className="w-3 h-3" />
-                      COMING MARCH 2025
+                      {selectedRaceId === 'ctct' ? 'LIVE NOW' : 'COMING MARCH 2025'}
                     </div>
                     <CardTitle className="text-3xl font-black">Cape Town Cycle Tour</CardTitle>
                     <CardDescription className="text-gray-200 text-lg font-medium mt-2">
-                      The world's largest timed cycle race. We're building a dedicated terrain-adjusted calculator for the coastal winds.
+                      The world's largest timed cycle race. We've built a dedicated terrain-adjusted calculator for the coastal winds.
                     </CardDescription>
                   </CardHeader>
                   <CardFooter className="relative z-10 pt-0">
-                    <Button variant="secondary" className="font-bold shadow-lg">
-                      Notify Me
+                    <Button 
+                      variant="secondary" 
+                      className="font-bold shadow-lg"
+                      onClick={() => {
+                        setSelectedRaceId('ctct');
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                    >
+                      {selectedRaceId === 'ctct' ? 'Currently Selected' : 'Try CTCT Calculator'}
                     </Button>
                   </CardFooter>
                 </Card>
