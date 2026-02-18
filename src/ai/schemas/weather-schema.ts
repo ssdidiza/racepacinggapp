@@ -12,6 +12,7 @@ export const WeatherInputSchema = z.object({
   month: z.string().optional().describe('The month the race takes place.'),
   raceStartTime: z.string().describe('The start time of the race in HH:MM format.'),
   raceHours: z.number().describe('The approximate duration of the race in hours.'),
+  regionalContext: z.string().optional().describe('Specific meteorological context for the region and time of year.'),
 });
 export type WeatherInput = z.infer<typeof WeatherInputSchema>;
 
