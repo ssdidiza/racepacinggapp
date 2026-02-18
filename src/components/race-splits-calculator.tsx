@@ -177,7 +177,7 @@ const RaceSplitsCalculator = () => {
     const targetTotalMinutes = targetHours * 60 + targetMinutes;
     if (targetTotalMinutes <= 0) return;
     
-    // Fetch weather forecast
+    // Fetch weather forecast with month context
     const forecast = await getWeatherForecast({
       location: currentRace.location,
       month: currentRace.month,
