@@ -79,6 +79,11 @@ const RaceSplitsCalculator = () => {
     validatePace();
     setShowResults(false);
   }, [targetHours, targetMinutes, riderProfile, selectedRaceId]);
+
+  useEffect(() => {
+    setStartTime(currentRace.defaultStartTime);
+    setShowResults(false);
+  }, [selectedRaceId]);
   
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -175,6 +180,7 @@ const RaceSplitsCalculator = () => {
     // Fetch weather forecast
     const forecast = await getWeatherForecast({
       location: currentRace.location,
+      month: currentRace.month,
       raceStartTime: startTime,
       raceHours: targetHours,
     });
@@ -387,31 +393,44 @@ const RaceSplitsCalculator = () => {
               <Card className="bg-card/80 backdrop-blur-sm border-white/20 shadow-2xl">
                 <CardContent className="p-6">
                   <div className="grid gap-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <Label className="text-white text-lg font-bold flex items-center gap-2">
-                          <Map className="w-5 h-5" />
-                          Select Race
-                        </Label>
-                        <div className="flex mt-2">
-                          <div className="flex h-12 flex-1 items-center justify-center rounded-lg bg-white/10 p-1">
-                            {RACE_CONFIGS.map(race => (
-                              <label key={race.id} className="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-md px-3 has-[:checked]:bg-primary has-[:checked]:shadow-md has-[:checked]:text-white text-gray-300 text-sm font-medium transition-all duration-200">
-                                <span className="truncate">{race.shortName}</span>
-                                <input 
-                                  className="invisible w-0" 
-                                  name="race-select" 
-                                  type="radio" 
-                                  value={race.id}
-                                  checked={selectedRaceId === race.id}
-                                  onChange={() => setSelectedRaceId(race.id)}
-                                />
-                              </label>
-                            ))}
-                          </div>
-                        </div>
+                    <div>
+                      <Label className="text-white text-lg font-bold flex items-center gap-2 mb-2">
+                        <Map className="w-5 h-5" />
+                        Select Your Race
+                      </Label>
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {RACE_CONFIGS.map(race => (
+                          <Button
+                            key={race.id}
+                            variant={selectedRaceId === race.id ? 'default' : 'outline'}
+                            className={cn(
+                              "flex-1 h-12 text-sm font-bold transition-all",
+                              selectedRaceId === race.id 
+                                ? "bg-primary text-white shadow-lg" 
+                                : "bg-white/10 text-gray-300 border-white/20 hover:bg-white/20"
+                            )}
+                            onClick={() => setSelectedRaceId(race.id)}
+                          >
+                            {race.name}
+                          </Button>
+                        ))}
                       </div>
+                      
+                      {selectedRaceId === 'ctct' && (
+                        <div className="p-3 bg-blue-500/20 border border-blue-400/30 rounded-lg text-blue-100 text-sm flex items-start gap-2 animate-in fade-in slide-in-from-left-2">
+                          <Info className="w-4 h-4 mt-0.5 shrink-0" />
+                          <p>Cape Town, March · 109km · Watch for the Cape Doctor wind and Ou Kaapse Weg.</p>
+                        </div>
+                      )}
+                      {selectedRaceId === '947-joburg' && (
+                        <div className="p-3 bg-orange-500/20 border border-orange-400/30 rounded-lg text-orange-100 text-sm flex items-start gap-2 animate-in fade-in slide-in-from-left-2">
+                          <Info className="w-4 h-4 mt-0.5 shrink-0" />
+                          <p>Johannesburg, November · 98km · Save legs for Mandela Bridge.</p>
+                        </div>
+                      )}
+                    </div>
 
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
                         <Label className="text-white text-lg font-bold flex items-center gap-2">
                           <Users className="w-5 h-5" />
@@ -435,11 +454,24 @@ const RaceSplitsCalculator = () => {
                           </div>
                         </div>
                       </div>
+
+                      <div>
+                        <Label className="text-white text-lg font-bold flex items-center gap-2">
+                          <Clock className="w-5 h-5" />
+                          Race Start Time
+                        </Label>
+                        <Input
+                          type="time"
+                          value={startTime}
+                          onChange={(e) => setStartTime(e.target.value)}
+                          className="h-12 mt-2 bg-white/10 text-white border-white/30 focus:border-primary transition-all"
+                        />
+                      </div>
                     </div>
 
                     <div>
                       <Label className="text-white text-lg font-bold flex items-center gap-2">
-                        <Clock className="w-5 h-5" />
+                        <TrendingUp className="w-5 h-5" />
                         Enter Your Target Time
                       </Label>
                       <div className="flex flex-wrap items-end gap-4 mt-2">
@@ -461,15 +493,6 @@ const RaceSplitsCalculator = () => {
                             onChange={(e) => setTargetMinutes(parseInt(e.target.value) || 0)}
                             className="h-14 p-4 text-lg bg-white/10 text-white border-white/30 focus:border-primary transition-all"
                             placeholder="45"
-                          />
-                        </div>
-                        <div className="grid gap-2 flex-1 min-w-40">
-                          <Label htmlFor="startTime" className="text-gray-300 font-medium">Start Time</Label>
-                          <Input
-                            id="startTime"
-                            type="time" value={startTime}
-                            onChange={(e) => setStartTime(e.target.value)}
-                            className="h-14 p-4 text-lg bg-white/10 text-white border-white/30 focus:border-primary transition-all"
                           />
                         </div>
                       </div>

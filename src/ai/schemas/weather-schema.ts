@@ -9,6 +9,7 @@ import { z } from 'zod';
 
 export const WeatherInputSchema = z.object({
   location: z.string().describe('The city and country for the weather forecast.'),
+  month: z.string().describe('The month the race takes place.'),
   raceStartTime: z.string().describe('The start time of the race in HH:MM format.'),
   raceHours: z.number().describe('The approximate duration of the race in hours.'),
 });
