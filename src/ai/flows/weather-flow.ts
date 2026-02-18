@@ -28,11 +28,13 @@ const prompt = ai.definePrompt({
   Provide an hourly forecast starting from one hour before the race begins until one hour after it is expected to finish.
   For each hour, provide the temperature in Celsius, wind speed in km/h, wind direction, a short condition description, and a relevant Google Material Symbols icon name.
   
-  The race takes place in {{location}} in {{month}}.
-  If the location is "Cape Town, South Africa":
-    Cape Town in March: typically warm sunny mornings (16-22°C), strong SE 'Cape Doctor' winds developing mid-morning (20-40 km/h), occasionally overcast. Wind direction is critical — SE tailwind on the way out, brutal headwind returning through Noordhoek.
-  Otherwise (e.g. Johannesburg):
-    Johannesburg in November: warm mornings (16-20°C), clear start, warming through the day, potential afternoon thunderstorms after 14:00.
+  The race takes place in {{location}} in the month typical for this event.
+
+  {{#if (eq location "Cape Town, South Africa")}}
+    Cape Town in March: typically warm sunny mornings starting 16-18°C, strong SE 'Cape Doctor' wind developing by 9am reaching 25-40 km/h, direction is SE which means a tailwind going south but headwind on the return through Noordhoek and Hout Bay. Risk of cloud over the mountain but rarely rain in March.
+  {{else}}
+    Johannesburg in November: clear cool mornings 15-18°C, warming to 26-30°C by midday, risk of afternoon thunderstorms after 14:00, low wind in the morning.
+  {{/if}}
   
   Example hourly forecast object:
   { time: '06:00', temperature: 16, windSpeed: 5, windDirection: 'N', condition: 'Clear', icon: 'sunny' }

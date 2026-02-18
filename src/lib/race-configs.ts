@@ -21,9 +21,11 @@ export interface RaceConfig {
   paceValidation: {
     minMinutes: number;
     eliteMinutes: number;
+    beginnerWarningMinutes: number;
   };
   hillWarningCheckpoints: string[];
   csvFilenamePrefix: string;
+  infoBanner: string;
 }
 
 export const RACE_CONFIGS: RaceConfig[] = [
@@ -45,9 +47,11 @@ export const RACE_CONFIGS: RaceConfig[] = [
     hillWarningCheckpoints: ['Kyalami Exit 49.3km', 'Mandela Bridge 84.2km'],
     paceValidation: {
       minMinutes: 150,
-      eliteMinutes: 180
+      eliteMinutes: 180,
+      beginnerWarningMinutes: 240
     },
-    csvFilenamePrefix: '947_ride_terrain_splits'
+    csvFilenamePrefix: '947_ride_joburg_splits',
+    infoBanner: "Watch for Mandela Bridge at 84km — the race is won or lost there"
   },
   {
     id: 'ctct',
@@ -58,21 +62,24 @@ export const RACE_CONFIGS: RaceConfig[] = [
     defaultStartTime: '06:30',
     month: 'March',
     checkpoints: [
-      { name: 'Ou Kaapse Weg Base 35km', distance: 35, terrainFactor: 0.95, description: 'Rolling coastal roads, find your rhythm' },
-      { name: 'Ou Kaapse Weg Summit 42km', distance: 42, terrainFactor: 0.55, description: 'The toughest climb - steep sustained ascent, reduce pace significantly' },
-      { name: 'Sun Valley 50km', distance: 50, terrainFactor: 1.35, description: 'Fast technical descent - recover and spin out legs' },
-      { name: "Chapman's Peak 65km", distance: 65, terrainFactor: 1.0, description: 'Scenic rolling coastal section, manageable pace' },
-      { name: 'Noordhoek Valley 75km', distance: 75, terrainFactor: 1.1, description: 'Flat valley - beware SE Cape Doctor headwind' },
-      { name: 'Hout Bay 85km', distance: 85, terrainFactor: 0.9, description: 'Rolling hills into Hout Bay' },
-      { name: 'Suikerbossie 95km', distance: 95, terrainFactor: 0.65, description: 'Second major climb - legs will be tired, dig deep' },
-      { name: 'Finish Green Point 109km', distance: 109, terrainFactor: 1.15, description: 'Flat final push into Cape Town city centre' }
+      { name: 'Constantia 9.9km', distance: 9.9, terrainFactor: 0.94, description: 'Rolling coastal start — expect peloton congestion, settle into your rhythm' },
+      { name: "Simon's Town 20.8km", distance: 20.8, terrainFactor: 1.27, description: 'Fast coastal section — includes steep climb then big descent to Simon\'s Town' },
+      { name: 'Klaas Jagersberg 37.9km', distance: 37.9, terrainFactor: 1.16, description: 'Fast flat return leg — bank time here, the OKW climb is coming' },
+      { name: 'Perdekloof 51.2km', distance: 51.2, terrainFactor: 0.94, description: '⚠️ Ou Kaapse Weg — 5km sustained climb at ~20 km/h, biggest challenge on the route' },
+      { name: 'Noordhoek 62km', distance: 62.0, terrainFactor: 1.18, description: 'OKW descent into Noordhoek valley — fast recovery, let the legs spin out' },
+      { name: 'Hout Bay 70.1km', distance: 70.1, terrainFactor: 1.12, description: 'Rolling coastal section into Hout Bay — manageable hills, stay fuelled' },
+      { name: 'Tokai 89km', distance: 89.0, terrainFactor: 1.03, description: 'Mixed terrain — notable climb (+96m) followed by big descent (-149m), nets average pace' },
+      { name: 'Suikerbossie 95km', distance: 95.0, terrainFactor: 0.96, description: '⚠️ Suikerbossie climb (+133m at 15 km/h) — the final major climb, give everything you have' },
+      { name: 'Finish Green Point 109km', distance: 109.0, terrainFactor: 1.08, description: 'Fast descent then flat run into Cape Town city centre — empty the tank all the way to Green Point' }
     ],
-    hillWarningCheckpoints: ["Ou Kaapse Weg Summit 42km", "Suikerbossie 95km"],
+    hillWarningCheckpoints: ["Perdekloof 51.2km", "Suikerbossie 95km"],
     paceValidation: {
-      minMinutes: 165,
-      eliteMinutes: 200
+      minMinutes: 200,
+      eliteMinutes: 225,
+      beginnerWarningMinutes: 270
     },
-    csvFilenamePrefix: 'ctct_splits'
+    csvFilenamePrefix: 'ctct_109km_splits',
+    infoBanner: "Ou Kaapse Weg at 44-50km and Suikerbossie at 88-95km are the defining climbs"
   }
 ];
 

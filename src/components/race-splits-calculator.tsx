@@ -9,13 +9,13 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import Link from 'next/link';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { getWeatherForecast } from '@/ai/flows/weather-flow';
 import { type WeatherForecast, type HourlyForecast } from '@/ai/schemas/weather-schema';
-import { RACE_CONFIGS, getRaceConfig, type RaceConfig, type Checkpoint } from '@/lib/race-configs';
+import { RACE_CONFIGS, getRaceConfig, type RaceConfig } from '@/lib/race-configs';
 
 
 interface Split {
@@ -83,7 +83,7 @@ const RaceSplitsCalculator = () => {
   useEffect(() => {
     setStartTime(currentRace.defaultStartTime);
     setShowResults(false);
-  }, [selectedRaceId]);
+  }, [selectedRaceId, currentRace.defaultStartTime]);
   
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -107,10 +107,10 @@ const RaceSplitsCalculator = () => {
 
   const validatePace = () => {
     const totalMinutes = targetHours * 60 + targetMinutes;
-    const { minMinutes, eliteMinutes } = currentRace.paceValidation;
+    const { minMinutes, eliteMinutes, beginnerWarningMinutes } = currentRace.paceValidation;
 
-    if (riderProfile === 'beginner' && totalMinutes < eliteMinutes * 1.33) { 
-        setPaceValidation({ level: 'warning', title: 'Ambitious Pace for a Beginner', message: 'This is a very fast time for a beginner. Make sure your training supports this goal!', Icon: AlertTriangle });
+    if (riderProfile === 'beginner' && totalMinutes < beginnerWarningMinutes) { 
+        setPaceValidation({ level: 'warning', title: `Ambitious Pace for a Beginner`, message: `This is a very fast time for a beginner at ${currentRace.shortName}. Make sure your training supports this goal!`, Icon: AlertTriangle });
     } else if (riderProfile === 'pro' && totalMinutes > eliteMinutes * 1.5) { 
         setPaceValidation({ level: 'info', title: 'Cruising Pace for a Pro', message: 'This seems like a relaxed pace for a pro rider. Planning an easy day?', Icon: Coffee });
     } else if (totalMinutes < minMinutes) { 
@@ -146,15 +146,15 @@ const RaceSplitsCalculator = () => {
   };
   
   const getDifficultyIcon = (terrainFactor: number, className?: string) => {
-    if (terrainFactor >= 1.2) return <span className={cn("material-symbols-outlined text-green-500", className)}>trending_flat</span>;
-    if (terrainFactor >= 0.8 && terrainFactor < 1.2) return <span className={cn("material-symbols-outlined text-yellow-500", className)}>show_chart</span>;
-    if (terrainFactor >= 0.7 && terrainFactor < 0.8) return <span className={cn("material-symbols-outlined text-orange-500", className)}>trending_up</span>;
+    if (terrainFactor >= 1.15) return <span className={cn("material-symbols-outlined text-green-500", className)}>trending_flat</span>;
+    if (terrainFactor >= 0.95 && terrainFactor < 1.15) return <span className={cn("material-symbols-outlined text-yellow-500", className)}>show_chart</span>;
+    if (terrainFactor >= 0.8 && terrainFactor < 0.95) return <span className={cn("material-symbols-outlined text-orange-500", className)}>trending_up</span>;
     return <span className={cn("material-symbols-outlined text-red-500", className)}>altitude</span>;
   };
   
   const getDifficultyDescription = (terrainFactor: number) => {
-    if (terrainFactor >= 1.2) return "Fast";
-    if (terrainFactor >= 0.8) return "Moderate";
+    if (terrainFactor >= 1.15) return "Fast";
+    if (terrainFactor >= 0.95) return "Moderate";
     return "Hilly";
   };
 
@@ -399,48 +399,43 @@ const RaceSplitsCalculator = () => {
                         <Map className="w-5 h-5" />
                         Select Your Race
                       </Label>
-                      <div className="flex flex-wrap gap-2 mb-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         {RACE_CONFIGS.map(race => (
                           <Button
                             key={race.id}
                             variant={selectedRaceId === race.id ? 'default' : 'outline'}
                             className={cn(
-                              "flex-1 h-12 text-sm font-bold transition-all",
+                              "flex flex-col items-center justify-center h-20 text-sm font-bold transition-all p-4",
                               selectedRaceId === race.id 
-                                ? "bg-primary text-white shadow-lg" 
+                                ? "bg-primary text-white shadow-lg border-primary scale-[1.02]" 
                                 : "bg-white/10 text-gray-300 border-white/20 hover:bg-white/20"
                             )}
                             onClick={() => setSelectedRaceId(race.id)}
                           >
-                            {race.name}
+                            <span className="text-base">{race.name}</span>
+                            <span className="text-[10px] opacity-70 uppercase tracking-widest mt-1">
+                                {race.distance}km · {race.location.split(',')[0]} · {race.month}
+                            </span>
                           </Button>
                         ))}
                       </div>
                       
-                      {selectedRaceId === 'ctct' && (
-                        <div 
-                          className="p-4 bg-blue-500/20 border border-blue-400/30 rounded-lg text-blue-100 text-sm flex items-start gap-4 animate-in fade-in slide-in-from-left-2 relative overflow-hidden group/banner"
-                        >
+                      <div className={cn(
+                          "p-4 border rounded-lg text-sm flex items-start gap-4 animate-in fade-in slide-in-from-left-2 relative overflow-hidden group/banner transition-colors duration-500",
+                          selectedRaceId === 'ctct' ? "bg-blue-500/20 border-blue-400/30 text-blue-100" : "bg-orange-500/20 border-orange-400/30 text-orange-100"
+                      )}>
+                        {selectedRaceId === 'ctct' && (
                           <div 
                             className="absolute inset-0 opacity-20 bg-cover bg-center group-hover/banner:scale-105 transition-transform duration-700 pointer-events-none"
                             style={{ backgroundImage: `url("${ctctImage?.imageUrl}")` }}
                           />
-                          <Info className="w-5 h-5 mt-0.5 shrink-0 text-blue-300 relative z-10" />
-                          <div className="relative z-10">
-                             <p className="font-bold mb-1">Cape Town Cycle Tour (CTCT)</p>
-                             <p className="opacity-90">March · 109km · Watch for the Cape Doctor wind and Ou Kaapse Weg.</p>
-                          </div>
+                        )}
+                        <Info className={cn("w-5 h-5 mt-0.5 shrink-0 relative z-10", selectedRaceId === 'ctct' ? "text-blue-300" : "text-orange-300")} />
+                        <div className="relative z-10">
+                             <p className="font-bold mb-1">{currentRace.name}</p>
+                             <p className="opacity-90">{currentRace.infoBanner}</p>
                         </div>
-                      )}
-                      {selectedRaceId === '947-joburg' && (
-                        <div className="p-3 bg-orange-500/20 border border-orange-400/30 rounded-lg text-orange-100 text-sm flex items-start gap-3 animate-in fade-in slide-in-from-left-2">
-                          <Info className="w-5 h-5 mt-0.5 shrink-0 text-orange-300" />
-                          <div>
-                            <p className="font-bold mb-1">947 Ride Joburg</p>
-                            <p className="opacity-90">November · 98km · Save legs for Mandela Bridge.</p>
-                          </div>
-                        </div>
-                      )}
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -548,12 +543,12 @@ const RaceSplitsCalculator = () => {
                 <section>
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
-                            <h2 className="text-3xl font-bold tracking-tight">{currentRace.name} Plan</h2>
+                            <h2 className="text-3xl font-bold tracking-tight">{currentRace.name} — Your Race Plan</h2>
                             <p className="text-muted-foreground mt-2">Personalized performance breakdown and weather forecast.</p>
                         </div>
                         <Button onClick={downloadCSV} variant="outline" size="lg" className="w-full md:w-auto shadow-sm">
                             <Download className="mr-2 h-4 w-4" />
-                            Download CSV
+                            Download CSV Plan
                         </Button>
                     </div>
                   
@@ -588,7 +583,7 @@ const RaceSplitsCalculator = () => {
                                   </div>
                                    <div>
                                     <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Est. Speed</p>
-                                    <p className={cn("text-xl font-black", split.terrainFactor >= 1.2 ? 'text-green-500' : split.terrainFactor < 0.8 ? 'text-red-500' : '')}>
+                                    <p className={cn("text-xl font-black", split.terrainFactor >= 1.15 ? 'text-green-500' : split.terrainFactor < 0.95 ? 'text-red-500' : '')}>
                                       {split.speedOnSplit.toFixed(1)} km/h
                                     </p>
                                   </div>
@@ -667,7 +662,7 @@ const RaceSplitsCalculator = () => {
                               </TableCell>
                               <TableCell className="text-right font-mono text-primary font-black text-lg">{split.timeOfDay}</TableCell>
                               <TableCell className="text-right font-mono font-medium">{formatTime(split.splitTime)}</TableCell>
-                              <TableCell className={cn("text-right font-black font-mono", split.terrainFactor >= 1.2 ? 'text-green-500' : split.terrainFactor < 0.8 ? 'text-red-500' : '')}>
+                              <TableCell className={cn("text-right font-black font-mono", split.terrainFactor >= 1.15 ? 'text-green-500' : split.terrainFactor < 0.95 ? 'text-red-500' : '')}>
                                 {split.speedOnSplit.toFixed(1)} km/h
                               </TableCell>
                               <TableCell className="text-right font-mono font-bold">{split.movingAverageSpeed.toFixed(1)} km/h</TableCell>
@@ -770,32 +765,22 @@ const RaceSplitsCalculator = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Featured: Cape Town Cycle Tour */}
-                <Card className="md:col-span-2 relative overflow-hidden group shadow-lg border-primary/5 min-h-[300px]">
-                  <div 
-                    className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" 
-                    style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.8)), url("${ctctImage?.imageUrl}")` }}
+                {/* Spin Tribe */}
+                <Card className="md:col-span-2 flex flex-col bg-primary text-primary-foreground shadow-lg border-none overflow-hidden relative group min-h-[300px]">
+                   <div 
+                    className="absolute inset-0 opacity-20 bg-cover bg-center transition-opacity duration-500 group-hover:opacity-30" 
+                    style={{ backgroundImage: `url("${spinTribeImage?.imageUrl}")` }}
                   />
-                  <CardHeader className="relative z-10 text-white mt-auto h-full flex flex-col justify-end">
-                    <div className="bg-primary/40 backdrop-blur-md self-start px-3 py-1 rounded-full text-xs font-bold mb-3 border border-white/20 flex items-center gap-2">
-                      <CheckCircle2 className="w-3 h-3 text-green-400" />
-                      CALCULATOR LIVE
-                    </div>
-                    <CardTitle className="text-3xl font-black">Cape Town Cycle Tour</CardTitle>
-                    <CardDescription className="text-gray-200 text-lg font-medium mt-2">
-                      The world's largest timed cycle race is now supported. Get your terrain-adjusted coastal splits today.
+                  <CardHeader className="relative z-10 h-full flex flex-col justify-end">
+                    <GraduationCap className="w-12 h-12 mb-4" />
+                    <CardTitle className="text-4xl font-black">Spin Tribe</CardTitle>
+                    <CardDescription className="text-primary-foreground/80 font-medium text-lg">
+                      Master your ride with expert-led cycling lessons and community workshops.
                     </CardDescription>
                   </CardHeader>
-                  <CardFooter className="relative z-10 pt-0">
-                    <Button 
-                      variant="secondary" 
-                      className="font-bold shadow-lg"
-                      onClick={() => {
-                        setSelectedRaceId('ctct');
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                      }}
-                    >
-                      {selectedRaceId === 'ctct' ? 'Currently Selected' : 'Load CTCT Calculator'}
+                  <CardFooter className="mt-auto relative z-10">
+                    <Button variant="outline" className="font-bold bg-white/10 border-white/20 hover:bg-white/20 text-white">
+                      Explore Lessons
                     </Button>
                   </CardFooter>
                 </Card>
@@ -823,26 +808,6 @@ const RaceSplitsCalculator = () => {
                   </CardFooter>
                 </Card>
 
-                {/* Spin Tribe */}
-                <Card className="flex flex-col bg-primary text-primary-foreground shadow-lg border-none overflow-hidden relative group">
-                   <div 
-                    className="absolute inset-0 opacity-20 bg-cover bg-center transition-opacity duration-500 group-hover:opacity-30" 
-                    style={{ backgroundImage: `url("${spinTribeImage?.imageUrl}")` }}
-                  />
-                  <CardHeader className="relative z-10">
-                    <GraduationCap className="w-12 h-12 mb-4" />
-                    <CardTitle className="text-2xl font-black">Spin Tribe</CardTitle>
-                    <CardDescription className="text-primary-foreground/80 font-medium">
-                      Master your ride with expert-led cycling lessons and community workshops.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardFooter className="mt-auto relative z-10">
-                    <Button variant="outline" className="w-full font-bold bg-white/10 border-white/20 hover:bg-white/20 text-white">
-                      Explore Lessons
-                    </Button>
-                  </CardFooter>
-                </Card>
-
                 {/* Training Plans */}
                 <Card className="shadow-lg border-primary/5 hover:border-primary/20 transition-all group">
                   <CardHeader>
@@ -862,13 +827,13 @@ const RaceSplitsCalculator = () => {
                 </Card>
 
                 {/* Suggest a Race */}
-                <Card className="shadow-lg border-primary/5 hover:border-primary/20 transition-all border-dashed bg-muted/20 flex flex-col items-center justify-center p-8 text-center group">
+                <Card className="md:col-span-2 shadow-lg border-primary/5 hover:border-primary/20 transition-all border-dashed bg-muted/20 flex flex-col items-center justify-center p-8 text-center group">
                   <div className="p-4 bg-muted rounded-full mb-4 group-hover:bg-primary/10 transition-colors">
                     <ExternalLink className="w-8 h-8 text-muted-foreground group-hover:text-primary" />
                   </div>
                   <CardTitle className="text-lg font-bold">Request a Race</CardTitle>
-                  <CardDescription className="mt-2 mb-4 font-medium">
-                    Want a specific race added to the calculator? Tell us about it.
+                  <CardDescription className="mt-2 mb-4 font-medium max-w-sm">
+                    Want a specific race added to the calculator? Tell us about it and we'll integrate the GPS data.
                   </CardDescription>
                   <Button variant="outline" className="font-bold border-primary/20">Suggest Now</Button>
                 </Card>
